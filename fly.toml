@@ -66,7 +66,6 @@ kill_timeout = "5s"
     timeout = "5s"
     grace_period = "10s"
     method = "GET"
-    path = "/litefs/health"
 
 [[vm]]
   cpu_kind = "shared"

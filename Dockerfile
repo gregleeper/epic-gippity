@@ -41,10 +41,6 @@ RUN npm prune --omit=dev
 # Final stage for app image
 FROM base
 
-# Install, configure litefs
-COPY --from=flyio/litefs:0.4.0 /usr/local/bin/litefs /usr/local/bin/litefs
-COPY --link other/litefs.yml /etc/litefs.yml
-
 # Install packages needed for deployment
 RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y ca-certificates fuse3 openssl sqlite3 && \
@@ -53,23 +49,7 @@ RUN apt-get update -qq && \
 # Copy built application
 COPY --from=build /app /app
 
-# Setup sqlite3 on a separate volume
-RUN mkdir -p /data /litefs 
-VOLUME /data
-
-# add shortcut for connecting to database CLI
-RUN echo "#!/bin/sh\nset -x\nsqlite3 \$DATABASE_URL" > /usr/local/bin/database-cli && chmod +x /usr/local/bin/database-cli
-
-# Entrypoint prepares the database.
-ENTRYPOINT [ "litefs", "mount", "--", "/app/other/docker-entrypoint.js" ]
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
-ENV DATABASE_FILENAME="sqlite.db"
-ENV LITEFS_DIR="/litefs"
-ENV DATABASE_PATH="$LITEFS_DIR/$DATABASE_FILENAME"
-ENV DATABASE_URL="file://$DATABASE_PATH"
-ENV CACHE_DATABASE_FILENAME="cache.db"
-ENV CACHE_DATABASE_PATH="$LITEFS_DIR/$CACHE_DATABASE_FILENAME"
-ENV PORT=3001
 CMD [ "npm", "run", "start" ]
