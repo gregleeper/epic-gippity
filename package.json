@@ -111,6 +111,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^8.3.1",
+    "@flydotio/dockerfile": "^0.4.11",
     "@playwright/test": "^1.39.0",
     "@remix-run/dev": "^2.3.0",
     "@remix-run/eslint-config": "^2.3.0",
