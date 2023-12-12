@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for epic-gippity-5e08-polished-smoke-1115 on 2023-12-12T13:28:41-06:00
+# fly.toml app configuration file generated for gippity-epic on 2023-12-12T13:52:29-06:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "epic-gippity-5e08-polished-smoke-1115"
+app = "gippity-epic"
 primary_region = "dfw"
 kill_signal = "SIGINT"
 kill_timeout = "5s"
