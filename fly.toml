@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for epic-gippity on 2023-12-12T15:03:55-06:00
+# fly.toml app configuration file generated for gippity on 2023-12-14T12:21:31-06:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "epic-gippity"
+app = "gippity"
 primary_region = "dfw"
 
 [build]
@@ -15,10 +15,7 @@ primary_region = "dfw"
   auto_start_machines = true
   min_machines_running = 0
   processes = ["app"]
-[services.concurrency]
-  type = "requests"
-  hard_limit = 250
-  soft_limit = 200
+
 [[vm]]
   cpu_kind = "shared"
   cpus = 1
