@@ -3,6 +3,13 @@ import React, { useId, useRef } from 'react'
 import { Checkbox, type CheckboxProps } from './ui/checkbox.tsx'
 import { Input } from './ui/input.tsx'
 import { Label } from './ui/label.tsx'
+import {
+	Select,
+	SelectContent,
+	type SelectProps,
+	SelectTrigger,
+	SelectValue,
+} from './ui/select.tsx'
 import { Textarea } from './ui/textarea.tsx'
 
 export type ListOfErrors = Array<string | null | undefined> | null | undefined
@@ -32,14 +39,17 @@ export function Field({
 	inputProps,
 	errors,
 	className,
+	inputRef,
 }: {
 	labelProps: React.LabelHTMLAttributes<HTMLLabelElement>
 	inputProps: React.InputHTMLAttributes<HTMLInputElement>
+	inputRef?: React.Ref<HTMLInputElement>
 	errors?: ListOfErrors
 	className?: string
 }) {
 	const fallbackId = useId()
 	const id = inputProps.id ?? fallbackId
+
 	const errorId = errors?.length ? `${id}-error` : undefined
 	return (
 		<div className={className}>
@@ -49,6 +59,7 @@ export function Field({
 				aria-invalid={errorId ? true : undefined}
 				aria-describedby={errorId}
 				{...inputProps}
+				ref={inputRef}
 			/>
 			<div className="min-h-[32px] px-4 pb-3 pt-1">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
@@ -78,6 +89,7 @@ export function TextareaField({
 				id={id}
 				aria-invalid={errorId ? true : undefined}
 				aria-describedby={errorId}
+				defaultValue={textareaProps.defaultValue}
 				{...textareaProps}
 			/>
 			<div className="min-h-[32px] px-4 pb-3 pt-1">
@@ -140,6 +152,78 @@ export function CheckboxField({
 					className="self-center text-body-xs text-muted-foreground"
 				/>
 			</div>
+			<div className="px-4 pb-3 pt-1">
+				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
+			</div>
+		</div>
+	)
+}
+
+export function SelectField({
+	labelProps,
+	buttonProps,
+	errors,
+	className,
+	children,
+}: {
+	labelProps: React.LabelHTMLAttributes<HTMLLabelElement>
+	buttonProps: SelectProps
+	errors?: ListOfErrors
+	className?: string
+	children: React.ReactNode
+}) {
+	const [open, setOpen] = React.useState(false)
+	const fallbackId = useId()
+	const buttonRef = useRef<HTMLButtonElement>(null)
+	const control = useInputEvent({
+		ref: () =>
+			buttonRef.current?.form?.elements.namedItem(buttonProps.name ?? ''),
+		onFocus: () => buttonRef.current?.focus(),
+		onBlur: () => buttonRef.current?.blur(),
+	})
+
+	console.log(children, buttonProps)
+
+	const id = buttonProps.id ?? buttonProps.name ?? fallbackId
+	const errorId = errors?.length ? `${id}-error` : undefined
+
+	const { name, ...props } = buttonProps
+
+	return (
+		<div className={className}>
+			<Label htmlFor={id} {...labelProps} />
+			<Select
+				name={buttonProps.name}
+				open={open}
+				onOpenChange={setOpen}
+				defaultValue={buttonProps.defaultValue?.toString()}
+			>
+				<SelectTrigger
+					id={id}
+					ref={buttonRef}
+					aria-invalid={errorId ? true : undefined}
+					aria-describedby={errorId}
+					{...props}
+					onChange={state => {
+						console.log(state)
+
+						control.change(state.currentTarget.value)
+						buttonProps.onChange?.(state)
+					}}
+					onFocus={event => {
+						control.focus()
+						buttonProps.onFocus?.(event)
+					}}
+					onBlur={event => {
+						control.blur()
+						buttonProps.onBlur?.(event)
+					}}
+					type="button"
+				>
+					<SelectValue placeholder={labelProps.children} />
+				</SelectTrigger>
+				<SelectContent>{children}</SelectContent>
+			</Select>
 			<div className="px-4 pb-3 pt-1">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
 			</div>

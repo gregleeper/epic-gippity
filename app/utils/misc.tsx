@@ -1,6 +1,6 @@
 import { useFormAction, useNavigation } from '@remix-run/react'
 import { clsx, type ClassValue } from 'clsx'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useSpinDelay } from 'spin-delay'
 import { extendTailwindMerge } from 'tailwind-merge'
 import { extendedTheme } from './extended-theme.ts'
@@ -344,4 +344,53 @@ export async function downloadFile(url: string, retries: number = 0) {
 		if (retries > MAX_RETRIES) throw e
 		return downloadFile(url, retries + 1)
 	}
+}
+
+export const useResize = (
+	containerRef: React.RefObject<HTMLDivElement>,
+	panelRef: React.RefObject<HTMLDivElement>,
+	initialWidth: number = 300,
+	minWidth = 0,
+) => {
+	const [panelWidth, setPanelWidth] = useState(initialWidth)
+
+	const onResizeStart = () => {
+		if (panelRef.current) {
+			panelRef.current.style.pointerEvents = 'none'
+			panelRef.current.style.userSelect = 'none'
+		}
+		if (containerRef.current) {
+			containerRef.current.classList.add('resizing')
+			containerRef.current.style.cursor = 'ew-resize'
+		}
+		window.addEventListener('pointermove', onResize)
+		window.addEventListener('pointerup', onResizeEnd)
+	}
+
+	const onResize = e => {
+		if (containerRef.current) {
+			const bounds = containerRef.current.getBoundingClientRect()
+			const newWidth = e.clientX - bounds.left
+			if (newWidth >= minWidth) {
+				setPanelWidth(newWidth)
+			} else {
+				setPanelWidth(minWidth)
+			}
+		}
+	}
+
+	const onResizeEnd = () => {
+		if (panelRef.current) {
+			panelRef.current.style.pointerEvents = 'auto'
+			panelRef.current.style.userSelect = 'auto'
+		}
+		if (containerRef.current) {
+			containerRef.current.classList.remove('resizing')
+			containerRef.current.style.cursor = 'auto'
+		}
+		window.removeEventListener('pointermove', onResize)
+		window.removeEventListener('pointerup', onResizeEnd)
+	}
+
+	return { panelWidth, onResizeStart }
 }

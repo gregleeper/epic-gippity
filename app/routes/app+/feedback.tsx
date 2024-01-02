@@ -18,6 +18,11 @@ import { TextareaField } from '#app/components/forms.tsx'
 import { requireUserWithPermission } from '#app/utils/permissions.ts'
 import { context as defaultContext } from '../../context/index.ts'
 import { type ChatHistoryProps } from '../resources+/feedback-assistant.ts'
+import {
+	ResizableHandle,
+	ResizablePanel,
+	ResizablePanelGroup,
+} from '#app/components/ui/resizable.tsx'
 
 // type LoaderData = {
 // 	assistantRole: string
@@ -195,114 +200,119 @@ export default function Home() {
 	}, [copied])
 
 	return (
-		<div className="grid w-full grid-cols-12 ">
-			<div className=" form-container col-span-5 col-start-1 mx-auto max-w-7xl space-y-2 border-r border-gray-400 p-4  sm:px-6  lg:px-8">
-				<h1 className="text-center text-3xl font-bold">Feedback</h1>
-				<p className="text-center text-lg font-light">
-					Set the rubric and reuirements. Then paste in the Student content
-					you'd like feedback on.{' '}
-				</p>
-				<Form method="post" name="rubricForm" className="space-y-4">
-					<TextareaField
-						textareaProps={{
-							placeholder: 'Assistant Role',
+		<ResizablePanelGroup direction="horizontal" className="h-screen">
+			<ResizablePanel defaultSize={50} className="h-screen ">
+				<div className="form-container col-span-5 col-start-1 mx-auto max-h-screen max-w-7xl space-y-2 overflow-auto p-4  sm:px-6  lg:px-8">
+					<h1 className="text-center text-3xl font-bold">Feedback</h1>
+					<p className="text-center text-lg font-light">
+						Set the rubric and reuirements. Then paste in the Student content
+						you'd like feedback on.{' '}
+					</p>
+					<Form method="post" name="rubricForm" className="space-y-4">
+						<TextareaField
+							textareaProps={{
+								placeholder: 'Assistant Role',
 
-							name: 'assistantRole',
-							readOnly: true,
-							defaultValue: data.assistantRole || '',
-							id: 'assistantRole',
-							cols: 30,
-							rows: 4,
-						}}
-						labelProps={{
-							htmlFor: 'assistantRole',
-							children: 'Assistant Role',
-						}}
-					></TextareaField>
-					<div className="group">
-						<TextareaField
-							textareaProps={{
-								placeholder: 'Add a rubric',
-								name: 'rubric',
-								defaultValue: data.rubric || '',
-								id: 'rubric',
+								name: 'assistantRole',
+								readOnly: true,
+								defaultValue: data.assistantRole || '',
+								id: 'assistantRole',
 								cols: 30,
-								rows: 15,
+								rows: 4,
 							}}
 							labelProps={{
-								htmlFor: 'rubric',
-								children: 'Rubric',
+								htmlFor: 'assistantRole',
+								children: 'Assistant Role',
 							}}
 						></TextareaField>
-					</div>
-					<div className="group">
-						<TextareaField
-							textareaProps={{
-								placeholder: 'Add Requirements',
-								name: 'requirements',
-								defaultValue: data.requirements || '',
-								id: 'requirements',
-								cols: 30,
-								rows: 15,
-							}}
-							labelProps={{
-								htmlFor: 'requirements',
-								children: 'Requirements',
-							}}
-						></TextareaField>
-					</div>
-					<div className="group">
-						<TextareaField
-							textareaProps={{
-								placeholder: 'Student Response',
-								name: 'studentResponse',
-								defaultValue: data.studentResponse || '',
-								id: 'studentResponse',
-								cols: 30,
-								rows: 15,
-							}}
-							labelProps={{
-								htmlFor: 'studentResponse',
-								children: 'Student Response',
-							}}
-						></TextareaField>
-					</div>
-					<Button variant={'default'} type="submit">
-						Submit
-					</Button>
-				</Form>
-			</div>
-			<div className="col-span-7 col-start-6 ">
-				{navigation.state === 'submitting' ? (
-					<div className="mx-auto my-4 flex w-3/4 items-center justify-center gap-4 rounded-md border border-gray-400 p-4">
-						<div className="inline-block h-4 w-4 animate-bounce rounded-full bg-orange-700 delay-75"></div>
-						<div className="inline-block h-4 w-4 animate-bounce rounded-full bg-orange-700 delay-100"></div>
-						<div className="inline-block h-4 w-4 animate-bounce rounded-full bg-orange-700"></div>
-					</div>
-				) : null}
-
-				{feedbackResponse ? (
-					<div
-						className="mx-auto my-4 flex w-3/4 items-start justify-center rounded-md border border-gray-400 p-4"
-						style={{ whiteSpace: 'pre-wrap' }}
-					>
-						{feedbackResponse}
-						<Button
-							onClick={() => handleCopy()}
-							className="w-[48px]"
-							variant={'ghost'}
-						>
-							<div className="relative">
-								{copied ? (
-									<span>Copied</span>
-								) : (
-									<ClipboardCopyIcon className="h-6 w-6" />
-								)}
-							</div>
+						<div className="group">
+							<TextareaField
+								textareaProps={{
+									placeholder: 'Add a rubric',
+									name: 'rubric',
+									defaultValue: data.rubric || '',
+									id: 'rubric',
+									cols: 30,
+									rows: 15,
+								}}
+								labelProps={{
+									htmlFor: 'rubric',
+									children: 'Rubric',
+								}}
+							></TextareaField>
+						</div>
+						<div className="group">
+							<TextareaField
+								textareaProps={{
+									placeholder: 'Add Requirements',
+									name: 'requirements',
+									defaultValue: data.requirements || '',
+									id: 'requirements',
+									cols: 30,
+									rows: 15,
+								}}
+								labelProps={{
+									htmlFor: 'requirements',
+									children: 'Requirements',
+								}}
+							></TextareaField>
+						</div>
+						<div className="group">
+							<TextareaField
+								textareaProps={{
+									placeholder: 'Student Response',
+									name: 'studentResponse',
+									defaultValue: data.studentResponse || '',
+									id: 'studentResponse',
+									cols: 30,
+									rows: 15,
+								}}
+								labelProps={{
+									htmlFor: 'studentResponse',
+									children: 'Student Response',
+								}}
+							></TextareaField>
+						</div>
+						<Button variant={'default'} type="submit">
+							Submit
 						</Button>
-					</div>
-				) : null}
-			</div>
-		</div>
+					</Form>
+				</div>
+			</ResizablePanel>
+			<ResizableHandle className="border-2" />
+			<ResizablePanel>
+				<div className="col-span-7 col-start-6 ">
+					{navigation.state === 'submitting' ? (
+						<div className="mx-auto my-4 flex w-3/4 items-center justify-center gap-4 rounded-md border border-gray-400 p-4">
+							<div className="inline-block h-4 w-4 animate-bounce rounded-full bg-orange-700 delay-75"></div>
+							<div className="inline-block h-4 w-4 animate-bounce rounded-full bg-orange-700 delay-100"></div>
+							<div className="inline-block h-4 w-4 animate-bounce rounded-full bg-orange-700"></div>
+						</div>
+					) : null}
+
+					{feedbackResponse ? (
+						<div
+							className="mx-auto my-4 flex w-3/4 items-start justify-center rounded-md border border-gray-400 p-4"
+							style={{ whiteSpace: 'pre-wrap' }}
+						>
+							{feedbackResponse}
+							<Button
+								onClick={() => handleCopy()}
+								className="w-[48px]"
+								variant={'ghost'}
+							>
+								<div className="relative">
+									{copied ? (
+										<span>Copied</span>
+									) : (
+										<ClipboardCopyIcon className="h-6 w-6" />
+									)}
+								</div>
+							</Button>
+						</div>
+					) : null}
+				</div>
+			</ResizablePanel>
+		</ResizablePanelGroup>
 	)
 }

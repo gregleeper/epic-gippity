@@ -233,7 +233,7 @@ const navComponents: { title: string; href: string; description: string }[] = [
 	},
 	{
 		title: 'Lesson Plans',
-		href: '/app/lesson-plans',
+		href: '/app/lesson-plan',
 		description: 'Create and manage lesson plans',
 	},
 	{
