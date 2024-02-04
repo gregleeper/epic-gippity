@@ -237,6 +237,16 @@ const navComponents: { title: string; href: string; description: string }[] = [
 		description: 'Create and manage lesson plans',
 	},
 	{
+		title: 'Unit Plans',
+		href: '/app/unit-plan',
+		description: 'Create and manage unit plans',
+	},
+	{
+		title: 'DOK',
+		href: '/app/dok',
+		description: 'Create and view Depth of Knowledge Qs',
+	},
+	{
 		title: 'Rubric',
 		href: '/app/rubric',
 		description: 'Create and manage rubrics',

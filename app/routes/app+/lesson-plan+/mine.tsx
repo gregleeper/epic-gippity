@@ -72,10 +72,12 @@ export default function MyLessonPlans() {
 
 	const lessonPlansByDate = useMemo(
 		() =>
+			// @ts-ignore
 			new Map(JSON.parse(loaderData.lessonPlansByDateJSON)) as Map<
 				string,
 				LessonPlan[]
 			>,
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[],
 	)
 
@@ -131,7 +133,7 @@ export default function MyLessonPlans() {
 				direction="horizontal"
 				className="max-w-full rounded-lg  "
 			>
-				<ResizablePanel defaultSize={50} className=" bg-stone-100">
+				<ResizablePanel defaultSize={25}>
 					<div className="mx-10 mt-4 ">
 						<h1 className="text-2xl font-semibold">My Lesson Plans</h1>
 						<p className="text-base font-light">
@@ -167,8 +169,8 @@ export default function MyLessonPlans() {
 													key={location.pathname}
 													className={cn(
 														selectedLessonPlanId === plans.at(0)?.id
-															? 'bg-stone-300/80'
-															: 'bg-white',
+															? 'bg-slate-300/80 dark:bg-slate-700/80'
+															: 'bg-white dark:bg-slate-900',
 													)}
 												>
 													<CardHeader>
@@ -200,8 +202,8 @@ export default function MyLessonPlans() {
 															key={location.pathname}
 															className={cn(
 																selectedLessonPlanId === plan.id
-																	? 'bg-stone-300/80'
-																	: 'bg-white',
+																	? 'bg-slate-300/80 dark:bg-slate-700/80'
+																	: 'bg-white dark:bg-slate-900',
 															)}
 														>
 															<CardHeader>
@@ -230,7 +232,7 @@ export default function MyLessonPlans() {
 					</div>
 				</ResizablePanel>
 				<ResizableHandle className="rounded-lg border-4" />
-				<ResizablePanel defaultSize={50} className="">
+				<ResizablePanel defaultSize={75} className="">
 					{location.pathname.endsWith('/mine') ? (
 						<div className="flex items-center justify-center">
 							<div className="text-lg font-bold ">

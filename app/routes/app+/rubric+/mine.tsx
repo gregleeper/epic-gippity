@@ -64,10 +64,12 @@ export default function MyRubrics() {
 
 	const rubricsByDate = useMemo(
 		() =>
+		// @ts-ignore
 			new Map(JSON.parse(loaderData.rubricsByDateJSON)) as Map<
 				string,
 				Rubric[]
 			>,
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 		[],
 	)
 
@@ -113,7 +115,7 @@ export default function MyRubrics() {
 				direction="horizontal"
 				className="max-w-full rounded-lg  "
 			>
-				<ResizablePanel defaultSize={50}>
+				<ResizablePanel defaultSize={25}>
 					<div className="mx-10 mt-4 ">
 						<h1 className="text-2xl font-semibold">My Rubrics</h1>
 						<p className="text-base font-light">Rubrics I've had generated</p>
@@ -147,8 +149,8 @@ export default function MyRubrics() {
 													key={location.pathname}
 													className={cn(
 														selectedRubricId === rubrics.at(0)?.id
-															? 'bg-stone-100'
-															: 'bg-white',
+															? 'bg-slate-300/80 dark:bg-slate-700'
+															: 'bg-white dark:bg-slate-900',
 													)}
 												>
 													<CardHeader>
@@ -175,8 +177,8 @@ export default function MyRubrics() {
 															key={location.pathname}
 															className={cn(
 																selectedRubricId === rubric.id
-																	? 'bg-stone-100'
-																	: 'bg-white',
+																	? 'bg-slate-300/80 dark:bg-slate-700'
+																	: 'bg-white dark:bg-slate-900',
 															)}
 														>
 															<CardHeader>
@@ -200,7 +202,7 @@ export default function MyRubrics() {
 					</div>
 				</ResizablePanel>
 				<ResizableHandle className="rounded-lg border-4" />
-				<ResizablePanel defaultSize={50} className="">
+				<ResizablePanel defaultSize={75} className="">
 					{location.pathname.endsWith('/mine') ? (
 						<div className="flex items-center justify-center">
 							<div className="text-lg font-bold ">

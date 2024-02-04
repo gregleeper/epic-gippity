@@ -1,5 +1,5 @@
 import { type LoaderFunctionArgs, json } from '@remix-run/node'
-import { Link, Outlet } from '@remix-run/react'
+import { Link } from '@remix-run/react'
 import {
 	Card,
 	CardDescription,
@@ -7,9 +7,10 @@ import {
 	CardTitle,
 } from '#app/components/ui/card.tsx'
 import { requireUserWithPermission } from '#app/utils/permissions.ts'
+import { ListOrderedIcon, PlusIcon } from 'lucide-react'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const userId = await requireUserWithPermission(request, 'create:chat')
+	await requireUserWithPermission(request, 'create:chat')
 
 	return json({
 		message: 'ok',
@@ -18,15 +19,41 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function Rubric() {
 	return (
-		<div>
-			<Link to="/app/rubric/mine">
-				<Card>
-					<CardHeader>
-						<CardTitle>My Rubrics</CardTitle>
-						<CardDescription>View rubrics you have created</CardDescription>
-					</CardHeader>
-				</Card>
-			</Link>
+		<div className="mx-12 grid grid-cols-6 gap-6">
+			<div className="h-48">
+				<Link to="/app/rubric/mine">
+					<Card className="transition-colors ease-in-out hover:bg-slate-300/80  dark:hover:bg-slate-700/80">
+						<CardHeader>
+							<CardTitle>
+								<div className="flex items-center justify-between space-x-4">
+									<div>
+										<ListOrderedIcon />{' '}
+									</div>
+									<div>My Rubrics</div>
+								</div>
+							</CardTitle>
+							<CardDescription>View Rubrics I've created </CardDescription>
+						</CardHeader>
+					</Card>
+				</Link>
+			</div>
+			<div className="h-48">
+				<Link to="/app/rubric/create">
+					<Card className="transition-colors  ease-in-out hover:bg-slate-300/80 dark:hover:bg-slate-700/80">
+						<CardHeader>
+							<CardTitle>
+								<div className="flex items-center justify-between space-x-4">
+									<div>
+										<PlusIcon />
+									</div>
+									<div>Generte New Rubrics</div>
+								</div>
+							</CardTitle>
+							<CardDescription>Create new rubrics</CardDescription>
+						</CardHeader>
+					</Card>
+				</Link>
+			</div>
 		</div>
 	)
 }

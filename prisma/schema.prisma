@@ -30,6 +30,8 @@ model User {
   LessonPlan     LessonPlan[]
   SupportingText SupportingText[]
   Summaries      Summary[]
+  UnitPlan       UnitPlan[]
+  DOK            DOK[]
 }
 
 model Feedback {
@@ -92,6 +94,33 @@ model LessonPlan {
   user               User             @relation(fields: [userId], references: [id])
 }
 
+model UnitPlan {
+  id                String    @id @default(uuid())
+  topics            String
+  additionalContext String?
+  standards         String?
+  gradeLevel        String
+  lengthOfUnit      String
+  unitPlanResponse  String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  summary           Summary[]
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+}
+
+model DOK {
+  id          String    @id @default(uuid())
+  gradeLevel  String
+  standards   String
+  dokResponse String?
+  summary     Summary[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+}
+
 model Summary {
   id           String      @id @default(uuid())
   createdAt    DateTime    @default(now())
@@ -105,6 +134,10 @@ model Summary {
   LessonPlan   LessonPlan? @relation(fields: [lessonPlanId], references: [id])
   rubricId     String?     @unique
   Rubric       Rubric?     @relation(fields: [rubricId], references: [id])
+  UnitPlan     UnitPlan?   @relation(fields: [unitPlanId], references: [id])
+  unitPlanId   String?
+  DOK          DOK?        @relation(fields: [dokId], references: [id])
+  dokId        String?
 
   @@unique([model, instanceId])
 }

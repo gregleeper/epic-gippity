@@ -171,7 +171,7 @@ export async function action({
 
 		const answer = chat.choices[0].message.content
 		if (!answer) throw new Error('Something went wrong! Please try again.')
-		const supportingText = await prisma.supportingText.create({
+		await prisma.supportingText.create({
 			data: {
 				textResponse: answer,
 				prompt: JSON.stringify({

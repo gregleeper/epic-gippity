@@ -15,14 +15,14 @@ import { Button } from '#/app/components/ui/button.tsx'
 // import { isAuthenticated } from '#/app/utils/auth.server.ts'
 import { prisma } from '#/app/utils/db.server.ts'
 import { TextareaField } from '#app/components/forms.tsx'
-import { requireUserWithPermission } from '#app/utils/permissions.ts'
-import { context as defaultContext } from '../../context/index.ts'
-import { type ChatHistoryProps } from '../resources+/feedback-assistant.ts'
 import {
 	ResizableHandle,
 	ResizablePanel,
 	ResizablePanelGroup,
 } from '#app/components/ui/resizable.tsx'
+import { requireUserWithPermission } from '#app/utils/permissions.ts'
+import { context as defaultContext } from '../../context/index.ts'
+import { type ChatHistoryProps } from '../resources+/feedback-assistant.ts'
 
 // type LoaderData = {
 // 	assistantRole: string

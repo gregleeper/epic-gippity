@@ -35,7 +35,7 @@ export default function MyLessonPlanById() {
 
 	const [hasSupportingTexts] = useState(lessonPlan.supportingTexts.length > 0)
 	return (
-		<div className="prose prose-lg max-h-screen max-w-none  overflow-auto p-10">
+		<div className="prose prose-lg max-h-screen max-w-none overflow-auto  p-10 dark:prose-invert">
 			{hasSupportingTexts ? (
 				<div className="py-4">
 					{lessonPlan.supportingTexts.map((text, index) => (

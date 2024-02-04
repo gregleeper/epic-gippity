@@ -168,7 +168,7 @@ export default function CeateRubric() {
 	console.log(loaderData)
 
 	return (
-		<div className="grid grid-cols-12">
+		<div className="mx-16 grid grid-cols-12">
 			<div className="col-span-12 grid-cols-subgrid">
 				<Form method="post" {...form.props}>
 					<div className="grid  grid-cols-12 gap-4 px-10">

@@ -23,7 +23,10 @@ import {
 } from '#app/components/ui/popover.tsx'
 import { SelectItem } from '#app/components/ui/select.tsx'
 import { type ChatHistoryProps } from '#app/routes/resources+/feedback-assistant.ts'
-import { supportingTextSchema } from '#app/routes/resources+/supporting-text-generator.ts'
+import {
+	type ReturnedDataProps,
+	supportingTextSchema,
+} from '#app/routes/resources+/supporting-text-generator.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { invariantResponse } from '#app/utils/misc.tsx'
 import { requireUserWithPermission } from '#app/utils/permissions.ts'
@@ -182,6 +185,7 @@ export default function CeateLessonPlan() {
 	// const loaderData = useLoaderData<typeof loader>()
 	const actionData: ActionData | null = useTypedActionData()
 	const supportingTextFetcher = useFetcher()
+	const data = supportingTextFetcher.data as ReturnedDataProps | null
 
 	const [copied, setCopied] = useState(false)
 	const submit = useSubmit()
@@ -439,9 +443,9 @@ export default function CeateLessonPlan() {
 							<div className="prose prose-stone" ref={supportingTextRef}>
 								{supportingTextFetcher.state === 'submitting' ? (
 									<p>Generating...</p>
-								) : supportingTextFetcher.data?.error ? (
-									<p>{supportingTextFetcher.data?.error}</p>
-								) : supportingTextFetcher.data?.answer ? (
+								) : data?.error ? (
+									<p>{data?.error}</p>
+								) : data?.answer ? (
 									<div
 										className="mx-auto my-4 flex w-full items-start justify-center rounded-lg border border-gray-400 p-4"
 										style={{ whiteSpace: 'pre-wrap' }}
@@ -449,7 +453,7 @@ export default function CeateLessonPlan() {
 										<div ref={supportingTextResponseRef}>
 											<Markdown
 												remarkPlugins={[remarkGfm]}
-												children={supportingTextFetcher.data.answer}
+												children={data.answer}
 											/>
 										</div>
 										<div>
