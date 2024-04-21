@@ -54,6 +54,24 @@ export default function Rubric() {
 					</Card>
 				</Link>
 			</div>
+			<div className="h-48">
+				<Link to="/app/rubric/add">
+					<Card className="transition-colors  ease-in-out hover:bg-slate-300/80 dark:hover:bg-slate-700/80">
+						<CardHeader>
+							<CardTitle>
+								<div className="flex items-center justify-between space-x-4">
+									<div>
+										<PlusIcon />
+									</div>
+									<div>Add New Rubrics</div>
+									<div className="text-xs"></div>
+								</div>
+							</CardTitle>
+							<CardDescription>Add your own rubric</CardDescription>
+						</CardHeader>
+					</Card>
+				</Link>
+			</div>
 		</div>
 	)
 }

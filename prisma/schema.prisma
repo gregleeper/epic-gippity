@@ -33,6 +33,7 @@ model User {
   UnitPlan       UnitPlan[]
   DOK            DOK[]
   Format         Format[]
+  UserRubric     UserRubric[]
 }
 
 model Feedback {
@@ -264,4 +265,45 @@ model Connection {
   userId String
 
   @@unique([providerName, providerId])
+}
+
+model UserRubric {
+  id          Int            @id @default(autoincrement())
+  userId      String
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  public      Boolean        @default(false)
+  name        String
+  description String
+  objective   String
+  gradeLevel  String
+  createdAt   DateTime       @default(now())
+  rows        RubricRow[]
+  columns     RubricColumn[]
+}
+
+model RubricRow {
+  id       Int          @id @default(autoincrement())
+  rubricId Int
+  content  String
+  order    Int
+  rubric   UserRubric   @relation(fields: [rubricId], references: [id])
+  cells    RubricCell[]
+}
+
+model RubricColumn {
+  id       Int          @id @default(autoincrement())
+  rubricId Int
+  content  String
+  order    Int
+  rubric   UserRubric   @relation(fields: [rubricId], references: [id])
+  cells    RubricCell[]
+}
+
+model RubricCell {
+  id       Int          @id @default(autoincrement())
+  rowId    Int
+  columnId Int
+  content  String
+  row      RubricRow    @relation(fields: [rowId], references: [id])
+  column   RubricColumn @relation(fields: [columnId], references: [id])
 }

@@ -3,18 +3,18 @@ import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import {
 	type ActionFunctionArgs,
 	json,
-	LoaderFunctionArgs,
+	type LoaderFunctionArgs,
 } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import OpenAI from 'openai'
+import Markdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import { z } from 'zod'
 import { Field, TextareaField } from '#app/components/forms.tsx'
+import { Button } from '#app/components/ui/button.tsx'
 import { type ChatHistoryProps } from '#app/routes/resources+/feedback-assistant.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { requireUserWithPermission } from '#app/utils/permissions.ts'
-import Markdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import { Button } from '#app/components/ui/button.tsx'
 
 const rubricSchema = z.object({
 	title: z.string().min(3),
