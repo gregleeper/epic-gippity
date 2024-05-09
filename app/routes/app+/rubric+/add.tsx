@@ -15,6 +15,7 @@ import { Field, SelectField, TextareaField } from '#app/components/forms.tsx'
 import TableInput from '#app/components/tableInput.tsx'
 import { Button } from '#app/components/ui/button.tsx'
 import { Label } from '#app/components/ui/label.tsx'
+import { RadioGroup, RadioGroupItem } from '#app/components/ui/radio-group.tsx'
 import { SelectItem } from '#app/components/ui/select.tsx'
 import { type ChatHistoryProps } from '#app/routes/resources+/feedback-assistant.ts'
 import { prisma } from '#app/utils/db.server.ts'
@@ -228,6 +229,7 @@ export default function AddRubric() {
 	const [inputType, setInputType] = useState('table')
 	const [textAreaData, setTextAreaData] = useState('')
 	const [tableData, setTableData] = useState(initialTableData)
+	console.log('input type', inputType)
 
 	const handleTableChange = (
 		e: React.ChangeEvent<HTMLInputElement>,
@@ -352,16 +354,61 @@ export default function AddRubric() {
 							</SelectField>
 						</div>
 
+						<div>
+							<RadioGroup
+								defaultValue={inputType}
+								onValueChange={value => setInputType(value)}
+							>
+								<div>
+									<Label>Rubric Type</Label>
+								</div>
+								<div className="flex justify-start gap-2">
+									<div>
+										<RadioGroupItem value="table" id="table" />
+									</div>
+									<div>
+										<Label htmlFor="table">Table</Label>
+									</div>
+								</div>
+								{/* <div className="flex justify-start gap-2">
+									<div>
+										<RadioGroupItem
+											value="textarea"
+											id="textarea"
+										/>
+									</div>
+									<div>
+										<Label htmlFor="textarea">Textarea</Label>
+									</div>
+								</div> */}
+							</RadioGroup>
+						</div>
 						{inputType === 'table' ? (
 							<div className="col-span-12">
 								<div>
 									<Label>Rubric</Label>
 								</div>
-								<div>
-									<Button onClick={addRow}>Add Row</Button>
-									<Button onClick={addColumn}>Add Column</Button>
-									<Button onClick={removeRow}>Remove Row</Button>
-									<Button onClick={removeColumn}>Remove Column</Button>
+								<div className="flex items-center justify-center pb-2">
+									<div className="pr-2">
+										<Button size={'sm'} onClick={addRow}>
+											Add Row
+										</Button>
+									</div>
+									<div className="pr-2">
+										<Button size={'sm'} onClick={addColumn}>
+											Add Column
+										</Button>
+									</div>
+									<div className="pr-2">
+										<Button size={'sm'} onClick={removeRow}>
+											Remove Row
+										</Button>
+									</div>
+									<div className="pr-2">
+										<Button size={'sm'} onClick={removeColumn}>
+											Remove Column
+										</Button>
+									</div>
 								</div>
 								<div></div>
 								<TableInput

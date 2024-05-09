@@ -304,7 +304,7 @@ export default function Home() {
 				<div className="form-container col-span-5 col-start-1 mx-auto max-h-screen max-w-7xl space-y-2 overflow-auto p-4  sm:px-6  lg:px-8">
 					<h1 className="text-center text-3xl font-bold">Feedback</h1>
 					<p className="text-center text-lg font-light">
-						Set the rubric and reuirements. We will use the last submission to
+						Set the rubric and requirements. We will use the last submission to
 						populate the Rubric and Requirements fields. Paste in the Student
 						content you'd like feedback on.
 					</p>
