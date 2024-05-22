@@ -64,7 +64,7 @@ export default function MyRubrics() {
 
 	const rubricsByDate = useMemo(
 		() =>
-		// @ts-ignore
+			// @ts-ignore
 			new Map(JSON.parse(loaderData.rubricsByDateJSON)) as Map<
 				string,
 				Rubric[]
@@ -110,12 +110,15 @@ export default function MyRubrics() {
 	console.log(selectedRubricId)
 
 	return (
-		<div>
+		<div className="h-full">
 			<ResizablePanelGroup
 				direction="horizontal"
-				className="max-w-full rounded-lg  "
+				className="h-full max-w-full rounded-lg  "
 			>
-				<ResizablePanel defaultSize={25}>
+				<ResizablePanel
+					defaultSize={25}
+					className="max-h-screen overflow-y-scroll"
+				>
 					<div className="mx-10 mt-4 ">
 						<h1 className="text-2xl font-semibold">My Rubrics</h1>
 						<p className="text-base font-light">Rubrics I've had generated</p>

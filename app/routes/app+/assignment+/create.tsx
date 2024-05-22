@@ -125,7 +125,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 		try {
 			const chat = await openai.chat.completions.create({
-				model: 'gpt-4o',
+				model: 'gpt-3.5-turbo-1106',
 				temperature: 0.1,
 				messages: [
 					...cleanContext,

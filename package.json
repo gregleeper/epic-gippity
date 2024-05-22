@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build": "run-s build:*",
+    "build:icons": "tsx ./other/build-icons.ts",
     "build:remix": "remix build --sourcemap",
     "build:server": "tsx ./other/build-server.ts",
     "dev": "remix dev -c \"node ./server/dev-server.js\" --manual",

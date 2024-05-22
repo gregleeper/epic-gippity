@@ -34,6 +34,7 @@ model User {
   DOK            DOK[]
   Format         Format[]
   UserRubric     UserRubric[]
+  Assignment     Assignment[]
 }
 
 model Feedback {
@@ -273,12 +274,14 @@ model UserRubric {
   user        User           @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   public      Boolean        @default(false)
   name        String
+  isPublic    Boolean?       @default(false)
   description String
   objective   String
   gradeLevel  String
   createdAt   DateTime       @default(now())
   rows        RubricRow[]
   columns     RubricColumn[]
+  Assignment  Assignment[]
 }
 
 model RubricRow {
@@ -306,4 +309,17 @@ model RubricCell {
   content  String
   row      RubricRow    @relation(fields: [rowId], references: [id])
   column   RubricColumn @relation(fields: [columnId], references: [id])
+}
+
+model Assignment {
+  id           String     @id @default(uuid())
+  title        String
+  description  String
+  requirements String
+  rubricId     Int
+  rubric       UserRubric @relation(fields: [rubricId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
 }

@@ -9,6 +9,7 @@ import {
 	type MetaFunction,
 } from '@remix-run/node'
 import {
+	Link,
 	Links,
 	LiveReload,
 	Meta,
@@ -62,20 +63,24 @@ export const links: LinksFunction = () => {
 		{ rel: 'preload', href: fontStyleSheetUrl, as: 'style' },
 		{ rel: 'preload', href: tailwindStyleSheetUrl, as: 'style' },
 		cssBundleHref ? { rel: 'preload', href: cssBundleHref, as: 'style' } : null,
-		{ rel: 'mask-icon', href: '/favicons/mask-icon.svg' },
-		{
-			rel: 'alternate icon',
-			type: 'image/png',
-			href: '/favicons/favicon-32x32.png',
-		},
-		{ rel: 'apple-touch-icon', href: '/favicons/apple-touch-icon.png' },
+		{ rel: 'mask-icon', href: '/favicons/favicon-gradient.ico' },
+		// {
+		// 	rel: 'alternate icon',
+		// 	type: 'image/png',
+		// 	href: '/favicons/favicon-32x32.png',
+		// },
+		// { rel: 'apple-touch-icon', href: '/favicons/apple-touch-icon.png' },
 		{
 			rel: 'manifest',
 			href: '/site.webmanifest',
 			crossOrigin: 'use-credentials',
 		} as const, // necessary to make typescript happy
 		//These should match the css preloads above to avoid css as render blocking resource
-		{ rel: 'icon', type: 'image/svg+xml', href: '/favicons/favicon.svg' },
+		{
+			rel: 'icon',
+			type: 'image/svg+xml',
+			href: '/favicons/favicon-gradient.ico',
+		},
 		{ rel: 'stylesheet', href: fontStyleSheetUrl },
 		{ rel: 'stylesheet', href: tailwindStyleSheetUrl },
 		cssBundleHref ? { rel: 'stylesheet', href: cssBundleHref } : null,
@@ -84,8 +89,8 @@ export const links: LinksFunction = () => {
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
 	return [
-		{ title: data ? 'Epic Notes' : 'Error | Epic Notes' },
-		{ name: 'description', content: `Your own captain's log` },
+		{ title: data ? 'Prosper Education' : 'Error | Prosper Education' },
+		{ name: 'description', content: `Prosper Education` },
 	]
 }
 
@@ -201,7 +206,7 @@ function Document({
 	env?: Record<string, string>
 }) {
 	return (
-		<html lang="en" className={`${theme} h-full overflow-x-hidden`}>
+		<html lang="en" className={`${theme} h-full  overflow-x-hidden`}>
 			<head>
 				<ClientHintCheck nonce={nonce} />
 				<Meta />
@@ -280,12 +285,22 @@ function App() {
 	const nonce = useNonce()
 	// const user = useOptionalUser()
 	const theme = useTheme()
+	console.log('theme', theme)
 
 	return (
 		<Document nonce={nonce} theme={theme} env={data.ENV}>
-			<div className="flex h-screen flex-col justify-between">
-				<div className="flex justify-center">
-					<div>
+			<div className="flex min-h-screen flex-col justify-between">
+				<div className="flex w-full items-center justify-start py-4">
+					<div className="py2 w-1/4 px-4">
+						<div className="h-20 w-20">
+							{theme === 'dark' ? (
+								<img src="/ProsperIconWhiteLine.png" alt="Prosper Logo" />
+							) : (
+								<img src="/ProsperIcon.png" alt="Prosper Logo" />
+							)}
+						</div>
+					</div>
+					<div className="w-3/4">
 						<NavigationMenu>
 							<NavigationMenuList>
 								<NavigationMenuItem>
@@ -325,17 +340,46 @@ function App() {
 					</div>
 				</div>
 
-				<div className="flex-1">
+				<div className="flex-grow">
 					<Outlet />
-				</div>
-
-				<div className="container flex justify-between pb-5">
-					<ThemeSwitch userPreference={data.requestInfo.userPrefs.theme} />
 				</div>
 			</div>
 			<Confetti id={data.confettiId} />
 			<EpicToaster toast={data.toast} />
 			<EpicProgress />
+			<footer className="flex w-full justify-between  border-t pb-5 text-foreground">
+				<div className="container my-8 flex justify-between gap-10">
+					<div className="w-1/4">
+						<ThemeSwitch userPreference={data.requestInfo.userPrefs.theme} />
+					</div>
+					<div className="flex w-full items-center justify-between gap-10 ">
+						{/* list the about page, privacy page, home page */}
+						<div className="flex w-3/4 items-center justify-around gap-6">
+							<Link to="/" className="text-foreground` text-sm font-medium">
+								Home
+							</Link>
+							<Link
+								to="/about"
+								className="text-foreground` text-sm font-medium"
+							>
+								About
+							</Link>
+							<Link
+								to="/privacy"
+								className="text-foreground` text-sm font-medium"
+							>
+								Privacy
+							</Link>
+						</div>
+
+						<div className=" w-1/4 text-right">
+							<span className="text-sm font-medium text-foreground ">
+								© {new Date().getFullYear().toString()} Prosper Education
+							</span>
+						</div>
+					</div>
+				</div>
+			</footer>
 		</Document>
 	)
 }

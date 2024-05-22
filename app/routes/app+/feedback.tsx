@@ -12,8 +12,8 @@ export async function loader({ request }: ActionFunctionArgs) {
 
 export default function FeedbackLayout() {
 	return (
-		<div>
-			<h1 className="ml-10 pb-4 text-2xl font-semibold">Feedback</h1>
+		<div className="w-full">
+			<h1 className="ml-10  pb-4 text-center text-3xl font-thin">Feedback</h1>
 			<Outlet />
 		</div>
 	)
