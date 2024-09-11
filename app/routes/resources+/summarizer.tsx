@@ -1,4 +1,4 @@
-import { parse } from '@conform-to/zod'
+import { parseWithZod } from '@conform-to/zod'
 import { json, type ActionFunctionArgs } from '@remix-run/node'
 import OpenAI from 'openai'
 import { z } from 'zod'
@@ -17,13 +17,13 @@ export async function action({ request }: ActionFunctionArgs) {
 	console.log('userId', userId)
 
 	const formData = await request.formData()
-	const submission = await parse(formData, {
+	const submission = await parseWithZod(formData, {
 		schema: summarizerSchema,
 		async: false,
 	})
 
-	if (submission.intent !== 'submit') {
-		return json({ submission } as const)
+	if (submission.status !== 'success') {
+		return json({ result: submission.reply() }, { status: 400 })
 	}
 
 	if (!submission.value) {

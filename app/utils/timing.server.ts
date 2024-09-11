@@ -1,4 +1,4 @@
-import { type CreateReporter } from 'cachified'
+import { type CreateReporter } from '@epic-web/cachified'
 
 export type Timings = Record<
 	string,
@@ -30,7 +30,6 @@ function createTimer(type: string, desc?: string) {
 			let timingType = timings[type]
 
 			if (!timingType) {
-				// eslint-disable-next-line no-multi-assign
 				timingType = timings[type] = []
 			}
 			timingType.push({ desc, time: performance.now() - start })

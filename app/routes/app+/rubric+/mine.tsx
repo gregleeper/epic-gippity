@@ -22,10 +22,10 @@ import {
 } from '#app/components/ui/resizable.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { cn } from '#app/utils/misc.tsx'
-import { requireUserWithPermission } from '#app/utils/permissions.ts'
+import { requireUserWithValidSubscription } from '#app/utils/permissions.ts'
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
-	const userId = await requireUserWithPermission(request, 'create:chat')
+	const userId = await requireUserWithValidSubscription(request)
 	const rubrics = await prisma.rubric.findMany({
 		where: {
 			userId: userId,
@@ -152,8 +152,8 @@ export default function MyRubrics() {
 													key={location.pathname}
 													className={cn(
 														selectedRubricId === rubrics.at(0)?.id
-															? 'bg-slate-300/80 dark:bg-slate-700'
-															: 'bg-white dark:bg-slate-900',
+															? 'bg-accent'
+															: 'bg-background',
 													)}
 												>
 													<CardHeader>
@@ -180,8 +180,8 @@ export default function MyRubrics() {
 															key={location.pathname}
 															className={cn(
 																selectedRubricId === rubric.id
-																	? 'bg-slate-300/80 dark:bg-slate-700'
-																	: 'bg-white dark:bg-slate-900',
+																	? 'bg-accent'
+																	: 'bg-background',
 															)}
 														>
 															<CardHeader>

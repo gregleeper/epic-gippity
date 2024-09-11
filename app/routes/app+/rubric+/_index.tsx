@@ -6,11 +6,11 @@ import {
 	CardHeader,
 	CardTitle,
 } from '#app/components/ui/card.tsx'
-import { requireUserWithPermission } from '#app/utils/permissions.ts'
+import { requireUserWithValidSubscription } from '#app/utils/permissions.ts'
 import { ListOrderedIcon, PlusIcon } from 'lucide-react'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	await requireUserWithPermission(request, 'create:chat')
+	await requireUserWithValidSubscription(request)
 
 	return json({
 		message: 'ok',

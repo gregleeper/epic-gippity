@@ -12,29 +12,37 @@ generator client {
 }
 
 model User {
-  id       String  @id @default(uuid())
-  email    String  @unique
-  username String  @unique
-  name     String?
+  id                    String    @id @default(uuid())
+  email                 String    @unique
+  username              String    @unique
+  name                  String?
+  stripeCustomerId      String?   @unique
+  subscriptionId        String?   @unique
+  subscriptionStatus    String?
+  subscriptionTier      String?
+  subscriptionStartDate DateTime?
+  subscriptionEndDate   DateTime?
+  cancelAtPeriodEnd     Boolean?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  image          UserImage?
-  password       Password?
-  roles          Role[]
-  sessions       Session[]
-  connections    Connection[]
-  feedbacks      Feedback[]
-  rubrics        Rubric[]
-  LessonPlan     LessonPlan[]
-  SupportingText SupportingText[]
-  Summaries      Summary[]
-  UnitPlan       UnitPlan[]
-  DOK            DOK[]
-  Format         Format[]
-  UserRubric     UserRubric[]
-  Assignment     Assignment[]
+  image              UserImage?
+  password           Password?
+  roles              Role[]
+  sessions           Session[]
+  connections        Connection[]
+  feedbacks          Feedback[]
+  rubrics            Rubric[]
+  LessonPlan         LessonPlan[]
+  SupportingText     SupportingText[]
+  Summaries          Summary[]
+  UnitPlan           UnitPlan[]
+  DOK                DOK[]
+  Format             Format[]
+  UserRubric         UserRubric[]
+  Assignment         Assignment[]
+  AssignmentFeedback AssignmentFeedback[]
+  Submission         Submission[]
 }
 
 model Feedback {
@@ -44,6 +52,7 @@ model Feedback {
   assistantRole    String
   studentResponse  String
   feedbackResponse String
+  assignmentId     String?
   summary          String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -53,7 +62,7 @@ model Feedback {
 }
 
 model Rubric {
-  id             String   @id @default(cuid())
+  id             String       @id @default(cuid())
   title          String
   gradeLevel     String
   objective      String
@@ -61,11 +70,25 @@ model Rubric {
   pointScale     Int
   customization  String?
   rubricResponse String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  isPublic       Boolean?     @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
   userId         String
-  user           User     @relation(fields: [userId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
   Summary        Summary?
+  Assignment     Assignment[]
+}
+
+model Submission {
+  id           String     @id @default(uuid())
+  assignmentId String
+  userId       String
+  user         User       @relation(fields: [userId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  aiFeedback   String?
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  studentText  String
 }
 
 model SupportingText {
@@ -312,12 +335,28 @@ model RubricCell {
 }
 
 model Assignment {
+  id                 String               @id @default(uuid())
+  title              String
+  description        String
+  requirements       String
+  gradeLevel         String?
+  rubricId           String
+  rubric             Rubric               @relation(fields: [rubricId], references: [id])
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  userId             String
+  user               User                 @relation(fields: [userId], references: [id])
+  AssignmentFeedback AssignmentFeedback[]
+  UserRubric         UserRubric?          @relation(fields: [userRubricId], references: [id])
+  userRubricId       Int?
+  Submission         Submission[]
+}
+
+model AssignmentFeedback {
   id           String     @id @default(uuid())
-  title        String
-  description  String
-  requirements String
-  rubricId     Int
-  rubric       UserRubric @relation(fields: [rubricId], references: [id])
+  assignmentId String
+  assignment   Assignment @relation(fields: [assignmentId], references: [id])
+  feedback     String
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   userId       String

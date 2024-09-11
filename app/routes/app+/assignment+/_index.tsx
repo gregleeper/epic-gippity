@@ -21,35 +21,35 @@ export default function FeedbackIndexRoute() {
 	return (
 		<div className="mx-12 grid grid-cols-6 gap-6">
 			<div className="h-48">
-				<Link to="/app/feedback/mine">
-					<Card className="transition-colors ease-in-out   hover:bg-stone-300/80 dark:hover:bg-stone-700/80">
+				<Link to="/app/assignment/mine">
+					<Card className="transition-colors ease-in-out hover:bg-accent">
 						<CardHeader>
 							<CardTitle>
 								<div className="flex items-center justify-between space-x-4">
 									<div>
 										<ListOrderedIcon />{' '}
 									</div>
-									<div>My Feedbacks</div>
+									<div>My Assignments</div>
 								</div>
 							</CardTitle>
-							<CardDescription>View all previous Feedbacks</CardDescription>
+							<CardDescription>View all Assignments</CardDescription>
 						</CardHeader>
 					</Card>
 				</Link>
 			</div>
 			<div className="h-48">
-				<Link to="/app/feedback/create">
-					<Card className="transition-colors  ease-in-out hover:bg-stone-300/80 dark:hover:bg-stone-700/80">
+				<Link to="/app/assignment/create">
+					<Card className="transition-colors ease-in-out hover:bg-accent">
 						<CardHeader>
 							<CardTitle>
 								<div className="flex items-center justify-between space-x-4">
 									<div>
 										<PlusIcon />
 									</div>
-									<div> New Feedback</div>
+									<div>Create New Assignment</div>
 								</div>
 							</CardTitle>
-							<CardDescription>Create a new Feedback</CardDescription>
+							<CardDescription>Create a new Assignment</CardDescription>
 						</CardHeader>
 					</Card>
 				</Link>

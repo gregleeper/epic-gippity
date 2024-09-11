@@ -1,6 +1,13 @@
-import { useInputEvent } from '@conform-to/react'
+import { useInputControl } from '@conform-to/react'
+import { type OTPInputProps, REGEXP_ONLY_DIGITS_AND_CHARS } from 'input-otp'
 import React, { useId, useRef } from 'react'
 import { Checkbox, type CheckboxProps } from './ui/checkbox.tsx'
+import {
+	InputOTP,
+	InputOTPGroup,
+	InputOTPSeparator,
+	InputOTPSlot,
+} from './ui/input-otp.tsx'
 import { Input } from './ui/input.tsx'
 import { Label } from './ui/label.tsx'
 import {
@@ -39,17 +46,14 @@ export function Field({
 	inputProps,
 	errors,
 	className,
-	inputRef,
 }: {
 	labelProps: React.LabelHTMLAttributes<HTMLLabelElement>
 	inputProps: React.InputHTMLAttributes<HTMLInputElement>
-	inputRef?: React.Ref<HTMLInputElement>
 	errors?: ListOfErrors
 	className?: string
 }) {
 	const fallbackId = useId()
 	const id = inputProps.id ?? fallbackId
-
 	const errorId = errors?.length ? `${id}-error` : undefined
 	return (
 		<div className={className}>
@@ -59,7 +63,6 @@ export function Field({
 				aria-invalid={errorId ? true : undefined}
 				aria-describedby={errorId}
 				{...inputProps}
-				ref={inputRef}
 			/>
 			<div className="min-h-[32px] px-4 pb-3 pt-1">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
@@ -84,14 +87,11 @@ export function TextareaField({
 	const errorId = errors?.length ? `${id}-error` : undefined
 	return (
 		<div className={className}>
-			<div className="mb-2">
-				<Label htmlFor={id} {...labelProps} className="" />
-			</div>
+			<Label htmlFor={id} {...labelProps} />
 			<Textarea
 				id={id}
 				aria-invalid={errorId ? true : undefined}
 				aria-describedby={errorId}
-				defaultValue={textareaProps.defaultValue}
 				{...textareaProps}
 			/>
 			<div className="min-h-[32px] px-4 pb-3 pt-1">
@@ -108,42 +108,45 @@ export function CheckboxField({
 	className,
 }: {
 	labelProps: JSX.IntrinsicElements['label']
-	buttonProps: CheckboxProps
+	buttonProps: CheckboxProps & {
+		name: string
+		form: string
+		value?: string
+	}
 	errors?: ListOfErrors
 	className?: string
 }) {
+	const { key, defaultChecked, ...checkboxProps } = buttonProps
 	const fallbackId = useId()
-	const buttonRef = useRef<HTMLButtonElement>(null)
-	// To emulate native events that Conform listen to:
-	// See https://conform.guide/integrations
-	const control = useInputEvent({
-		// Retrieve the checkbox element by name instead as Radix does not expose the internal checkbox element
-		// See https://github.com/radix-ui/primitives/discussions/874
-		ref: () =>
-			buttonRef.current?.form?.elements.namedItem(buttonProps.name ?? ''),
-		onFocus: () => buttonRef.current?.focus(),
+	const checkedValue = buttonProps.value ?? 'on'
+	const input = useInputControl({
+		key,
+		name: buttonProps.name,
+		formId: buttonProps.form,
+		initialValue: defaultChecked ? checkedValue : undefined,
 	})
-	const id = buttonProps.id ?? buttonProps.name ?? fallbackId
+	const id = buttonProps.id ?? fallbackId
 	const errorId = errors?.length ? `${id}-error` : undefined
+
 	return (
 		<div className={className}>
 			<div className="flex gap-2">
 				<Checkbox
+					{...checkboxProps}
 					id={id}
-					ref={buttonRef}
 					aria-invalid={errorId ? true : undefined}
 					aria-describedby={errorId}
-					{...buttonProps}
+					checked={input.value === checkedValue}
 					onCheckedChange={state => {
-						control.change(Boolean(state.valueOf()))
+						input.change(state.valueOf() ? checkedValue : '')
 						buttonProps.onCheckedChange?.(state)
 					}}
 					onFocus={event => {
-						control.focus()
+						input.focus()
 						buttonProps.onFocus?.(event)
 					}}
 					onBlur={event => {
-						control.blur()
+						input.blur()
 						buttonProps.onBlur?.(event)
 					}}
 					type="button"
@@ -167,21 +170,27 @@ export function SelectField({
 	errors,
 	className,
 	children,
+	handleValueChange,
 }: {
 	labelProps: React.LabelHTMLAttributes<HTMLLabelElement>
-	buttonProps: SelectProps
+	buttonProps: SelectProps & {
+		form: string
+		name: string
+		value?: string
+	}
 	errors?: ListOfErrors
 	className?: string
 	children: React.ReactNode
+	handleValueChange?: (value: string) => void
 }) {
 	const [open, setOpen] = React.useState(false)
 	const fallbackId = useId()
 	const buttonRef = useRef<HTMLButtonElement>(null)
-	const control = useInputEvent({
-		ref: () =>
-			buttonRef.current?.form?.elements.namedItem(buttonProps.name ?? ''),
-		onFocus: () => buttonRef.current?.focus(),
-		onBlur: () => buttonRef.current?.blur(),
+	const control = useInputControl({
+		key: buttonProps.key,
+		formId: buttonProps.form,
+		name: buttonProps.name,
+		initialValue: buttonProps?.defaultValue?.toString() || undefined,
 	})
 
 	console.log(children, buttonProps)
@@ -199,6 +208,7 @@ export function SelectField({
 				open={open}
 				onOpenChange={setOpen}
 				defaultValue={buttonProps.defaultValue?.toString()}
+				onValueChange={handleValueChange}
 			>
 				<SelectTrigger
 					id={id}
@@ -227,6 +237,50 @@ export function SelectField({
 				<SelectContent>{children}</SelectContent>
 			</Select>
 			<div className="px-4 pb-3 pt-1">
+				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
+			</div>
+		</div>
+	)
+}
+
+export function OTPField({
+	labelProps,
+	inputProps,
+	errors,
+	className,
+}: {
+	labelProps: React.LabelHTMLAttributes<HTMLLabelElement>
+	inputProps: Partial<OTPInputProps & { render: never }>
+	errors?: ListOfErrors
+	className?: string
+}) {
+	const fallbackId = useId()
+	const id = inputProps.id ?? fallbackId
+	const errorId = errors?.length ? `${id}-error` : undefined
+	return (
+		<div className={className}>
+			<Label htmlFor={id} {...labelProps} />
+			<InputOTP
+				pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
+				maxLength={6}
+				id={id}
+				aria-invalid={errorId ? true : undefined}
+				aria-describedby={errorId}
+				{...inputProps}
+			>
+				<InputOTPGroup>
+					<InputOTPSlot index={0} />
+					<InputOTPSlot index={1} />
+					<InputOTPSlot index={2} />
+				</InputOTPGroup>
+				<InputOTPSeparator />
+				<InputOTPGroup>
+					<InputOTPSlot index={3} />
+					<InputOTPSlot index={4} />
+					<InputOTPSlot index={5} />
+				</InputOTPGroup>
+			</InputOTP>
+			<div className="min-h-[32px] px-4 pb-3 pt-1">
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
 			</div>
 		</div>

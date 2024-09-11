@@ -1,9 +1,15 @@
-import { conform, useForm } from '@conform-to/react'
-import { getFieldsetConstraint, parse } from '@conform-to/zod'
+import {
+	getFormProps,
+	getInputProps,
+	type SubmissionResult,
+	useForm,
+} from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import {
 	type ActionFunctionArgs,
 	json,
 	type LoaderFunctionArgs,
+	redirect,
 } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
 import OpenAI from 'openai'
@@ -14,7 +20,7 @@ import { Field, TextareaField } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
 import { type ChatHistoryProps } from '#app/routes/resources+/feedback-assistant.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { requireUserWithPermission } from '#app/utils/permissions.ts'
+import { requireUserWithValidSubscription } from '#app/utils/permissions.ts'
 
 const rubricSchema = z.object({
 	title: z.string().min(3),
@@ -23,10 +29,11 @@ const rubricSchema = z.object({
 	gradeLevel: z.string().min(3).max(255),
 	pointScale: z.coerce.number(),
 	customization: z.string().optional(),
+	intent: z.enum(['submit']),
 })
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const userId = await requireUserWithPermission(request, 'create:chat')
+	const userId = await requireUserWithValidSubscription(request)
 
 	const chatHistory = [] as ChatHistoryProps[]
 
@@ -46,22 +53,21 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-	const userId = await requireUserWithPermission(request, 'create:chat')
+	const userId = await requireUserWithValidSubscription(request)
 
-	const chatHistory = [] as ChatHistoryProps[]
+	// const chatHistory = [] as ChatHistoryProps[]
 
 	const formData = await request.formData()
-	const submission = await parse(formData, {
+	const submission = await parseWithZod(formData, {
 		schema: rubricSchema,
 		async: false,
 	})
+	if (submission.status !== 'success') {
+		return json({ result: submission.reply() } as const, {
+			status: 400,
+		})
+	}
 
-	if (submission.intent !== 'submit') {
-		return json({ status: 'idle', submission } as const)
-	}
-	if (!submission.value) {
-		return json({ status: 'error', submission } as const, { status: 400 })
-	}
 	// create the rubric in the database
 	const rubric = await prisma.rubric.create({
 		data: {
@@ -133,34 +139,27 @@ export async function action({ request }: ActionFunctionArgs) {
 			},
 		})
 
-		return {
-			message: rubric.description,
-			answer: answer as string,
-			chatHistory,
-		}
+		return redirect(`/rubric/mine/${rubric.id}`)
 	} catch (error: any) {
-		return {
-			message: rubric.description,
-			answer: '',
-			error: error.message || 'Something went wrong! Please try again.',
-			chatHistory,
-		}
+		throw new Error(error)
 	}
-
-	return json({
-		submission,
-	})
 }
 
 export default function CeateRubric() {
 	const loaderData = useLoaderData<typeof loader>()
 	const actionData = useActionData<typeof action>()
+
+	function isSubmissionResult(
+		data: unknown,
+	): data is { result: SubmissionResult } {
+		return data != null && typeof data === 'object' && 'result' in data
+	}
 	const [form, fields] = useForm({
-		id: 'signup-form',
-		constraint: getFieldsetConstraint(rubricSchema),
-		lastSubmission: actionData?.submission,
+		id: 'create-rubric-form',
+		constraint: getZodConstraint(rubricSchema),
+		lastResult: isSubmissionResult(actionData) ? actionData.result : undefined,
 		onValidate({ formData }) {
-			const result = parse(formData, { schema: rubricSchema })
+			const result = parseWithZod(formData, { schema: rubricSchema })
 			return result
 		},
 		shouldRevalidate: 'onBlur',
@@ -170,12 +169,12 @@ export default function CeateRubric() {
 	return (
 		<div className="mx-16 grid grid-cols-12">
 			<div className="col-span-12 grid-cols-subgrid">
-				<Form method="post" {...form.props}>
+				<Form method="post" {...getFormProps(form)}>
 					<div className="grid  grid-cols-12 gap-4 px-10">
 						<div className="col-span-4">
 							<Field
 								inputProps={{
-									...conform.input(fields.title),
+									...getInputProps(fields.title, { type: 'text' }),
 									defaultValue: loaderData.submission?.title,
 								}}
 								labelProps={{
@@ -188,7 +187,7 @@ export default function CeateRubric() {
 						<div className="col-span-8">
 							<Field
 								inputProps={{
-									...conform.input(fields.objective),
+									...getInputProps(fields.objective, { type: 'text' }),
 									defaultValue: loaderData.submission?.objective,
 								}}
 								labelProps={{
@@ -201,7 +200,7 @@ export default function CeateRubric() {
 						<div className="grid-subgrid col-span-12">
 							<TextareaField
 								textareaProps={{
-									...conform.input(fields.description),
+									...getInputProps(fields.description, { type: 'text' }),
 									defaultValue: loaderData.submission?.description,
 								}}
 								labelProps={{
@@ -214,7 +213,7 @@ export default function CeateRubric() {
 						<div className="col-span-3">
 							<Field
 								inputProps={{
-									...conform.input(fields.gradeLevel),
+									...getInputProps(fields.gradeLevel, { type: 'text' }),
 									defaultValue: loaderData.submission?.gradeLevel,
 								}}
 								labelProps={{
@@ -227,7 +226,7 @@ export default function CeateRubric() {
 						<div className="col-span-3">
 							<Field
 								inputProps={{
-									...conform.input(fields.pointScale),
+									...getInputProps(fields.pointScale, { type: 'number' }),
 									defaultValue: loaderData.submission?.pointScale,
 								}}
 								labelProps={{
@@ -240,7 +239,7 @@ export default function CeateRubric() {
 						<div className="col-span-10">
 							<Field
 								inputProps={{
-									...conform.input(fields.customization),
+									...getInputProps(fields.customization, { type: 'text' }),
 									defaultValue: loaderData.submission?.customization || '',
 								}}
 								labelProps={{

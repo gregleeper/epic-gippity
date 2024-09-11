@@ -22,10 +22,10 @@ import {
 } from '#app/components/ui/resizable.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { cn } from '#app/utils/misc.tsx'
-import { requireUserWithPermission } from '#app/utils/permissions.ts'
+import { requireUserWithValidSubscription } from '#app/utils/permissions.ts'
 
 export async function loader({ params, request }: LoaderFunctionArgs) {
-	const userId = await requireUserWithPermission(request, 'create:chat')
+	const userId = await requireUserWithValidSubscription(request)
 	const doks = await prisma.dOK.findMany({
 		where: {
 			userId: userId,
@@ -158,7 +158,7 @@ export default function MyUnitPlans() {
 													key={location.pathname}
 													className={cn(
 														selectedDokId === plans.at(0)?.id
-															? 'bg-slate-300/80 dark:bg-slate-700/90'
+															? 'bg-amber-300/80 dark:bg-amber-700/90'
 															: 'bg-white dark:bg-slate-900',
 													)}
 												>
@@ -173,7 +173,7 @@ export default function MyUnitPlans() {
 																}
 															</h3>
 														</CardTitle>
-														<CardDescription className="prose line-clamp-3">
+														<CardDescription className="prose line-clamp-3 text-amber-950">
 															<p>{plans.at(0)?.standards}</p>
 														</CardDescription>
 													</CardHeader>
@@ -191,8 +191,8 @@ export default function MyUnitPlans() {
 															key={location.pathname}
 															className={cn(
 																selectedDokId === plan.id
-																	? 'bg-slate-300/80 dark:bg-slate-700/90'
-																	: 'bg-white dark:bg-slate-900',
+																	? 'bg-accent'
+																	: 'bg-background',
 															)}
 														>
 															<CardHeader>
@@ -206,7 +206,7 @@ export default function MyUnitPlans() {
 																		}
 																	</h3>
 																</CardTitle>
-																<CardDescription className="prose line-clamp-3">
+																<CardDescription className="prose line-clamp-3 ">
 																	<p>{plan.standards}</p>
 																</CardDescription>
 															</CardHeader>

@@ -167,8 +167,8 @@ export default function MyFeedbacks() {
 													key={location.pathname}
 													className={cn(
 														selectedFeedbackId === plans.at(0)?.id
-															? 'bg-accent hover:bg-accent/80'
-															: ' hover:bg-accent/20',
+															? 'bg-accent'
+															: 'bg-background',
 													)}
 												>
 													<CardHeader>
@@ -198,8 +198,8 @@ export default function MyFeedbacks() {
 															key={location.pathname}
 															className={cn(
 																selectedFeedbackId === plan.id
-																	? 'bg-accent hover:bg-accent/80'
-																	: 'hover:bg-accent/20',
+																	? 'bg-accent'
+																	: 'bg-background',
 															)}
 														>
 															<CardHeader>

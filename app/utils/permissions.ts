@@ -99,3 +99,37 @@ export function userHasRole(
 	if (!user) return false
 	return user.roles.some(r => r.name === role)
 }
+
+export function userHasValidSubscription(
+	user: Pick<
+		ReturnType<typeof useUser>,
+		'subscriptionStatus' | 'subscriptionId'
+	> | null,
+) {
+	if (!user) return false
+	return user.subscriptionStatus === 'active'
+}
+
+export async function requireUserWithValidSubscription(request: Request) {
+	const userId = await requireUserId(request)
+	const user = await prisma.user.findFirst({
+		select: {
+			subscriptionStatus: true,
+			subscriptionId: true,
+			stripeCustomerId: true,
+			id: true,
+		},
+		where: { id: userId },
+	})
+	console.log('user', user)
+	if (user?.subscriptionStatus !== 'active') {
+		throw json(
+			{
+				error: 'Unauthorized',
+				message: 'User does not have a valid subscription',
+			},
+			{ status: 403 },
+		)
+	}
+	return user.id
+}

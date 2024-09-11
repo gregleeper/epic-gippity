@@ -169,8 +169,8 @@ export default function MyLessonPlans() {
 													key={location.pathname}
 													className={cn(
 														selectedLessonPlanId === plans.at(0)?.id
-															? 'bg-slate-300/80 dark:bg-slate-700/80'
-															: 'bg-white dark:bg-slate-900',
+															? 'bg-accent'
+															: 'bg-background',
 													)}
 												>
 													<CardHeader>
@@ -202,8 +202,8 @@ export default function MyLessonPlans() {
 															key={location.pathname}
 															className={cn(
 																selectedLessonPlanId === plan.id
-																	? 'bg-slate-300/80 dark:bg-slate-700/80'
-																	: 'bg-white dark:bg-slate-900',
+																	? 'bg-accent'
+																	: 'bg-background',
 															)}
 														>
 															<CardHeader>

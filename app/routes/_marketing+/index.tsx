@@ -56,25 +56,26 @@ export default function Index() {
 							)}
 						</div>
 					</div>
-					<div className=" pb-24 pt-10">
-						<p className="mx-36 mt-8 text-center text-lg font-semibold text-gray-800 ">
-							Join the{' '}
-							<span className=" font-mono text-xl text-amber-700">Prosper</span>{' '}
-							community today and experience the transformative power of AI in
-							education. Sign up now for early access and be among the first to
-							revolutionize your classroom.
+					<div className=" pb-24 pt-4 ">
+						<p className="mx-36 mt-8 text-center text-xl font-semibold text-gray-800 ">
+							Join{' '}
+							<span className=" font-mono text-2xl text-amber-700">
+								Prosper
+							</span>{' '}
+							today. Harness AI to transform your classroom. Sign up for early
+							access now.
 						</p>
 						<div className="mt-8 flex justify-center">
 							<Link to="/signup">
-								<Button className="font-medium text-amber-700 ">
+								<Button className="border-2 border-amber-800 bg-amber-600/85 px-8 py-6 text-2xl font-medium text-amber-950 shadow-lg transition-all duration-300 hover:scale-105 hover:border-amber-500 hover:bg-amber-600/90 hover:text-white hover:shadow-xl">
 									Get Started
 								</Button>
 							</Link>
 						</div>
 					</div>
-					<div className=" rounded-3xl bg-stone-200/25 px-10 py-24">
+					<div className=" rounded-3xl bg-stone-200/40 px-10 py-24 text-lg leading-relaxed">
 						<div className="">
-							<p className="font-medium text-gray-700">
+							<p className="font-medium text-gray-900">
 								Teaching is both an art and a science, and at Prosper, we
 								believe that blending the best of human expertise with
 								cutting-edge AI technology is the key to unlocking student
@@ -87,38 +88,38 @@ export default function Index() {
 					</div>
 					<div className="mt-36">
 						<div>
-							<h2 className="text-center text-4xl font-semibold text-gray-700">
+							<h2 className="text-center text-4xl font-semibold text-gray-900">
 								Why Choose Prosper?
 							</h2>
 						</div>
-						<div className="mb-10 mt-8 flex justify-around gap-8">
-							<div className="w-1/3 rounded-3xl bg-stone-200/25 px-3 py-4">
+						<div className=" space-y-8 lg:mb-10 lg:mt-8 lg:flex lg:w-full lg:flex-row lg:justify-around lg:gap-8 lg:space-y-0">
+							<div className="mt-8 rounded-3xl bg-stone-200/25 px-3 py-4 lg:mt-0 lg:w-1/3">
 								<h3 className="pb-4 text-center text-2xl font-semibold ">
 									Enhanced Learning
 								</h3>
-								<p className="text-center text-lg font-medium text-gray-900">
+								<p className="text-center text-lg font-medium text-gray-950">
 									Leverage AI-driven analytics to gain a deeper understanding of
 									each student's strengths, weaknesses, and learning
 									preferences, enabling you to tailor your teaching approach for
 									maximum impact.
 								</p>
 							</div>
-							<div className="w-1/3 rounded-3xl bg-stone-200/25 px-3 py-4">
+							<div className="rounded-3xl bg-stone-200/25 px-3 py-4 lg:w-1/3">
 								<h3 className="pb-4 text-center text-2xl font-semibold ">
 									Adaptive Learning Tools
 								</h3>
-								<p className="text-center text-lg font-medium text-gray-700">
+								<p className="text-center text-lg font-medium text-gray-950">
 									Our AI-powered tools continuously adjust to each student's
 									pace and progress, providing personalized recommendations,
 									interactive exercises, and real-time feedback to ensure no one
 									falls behind.
 								</p>
 							</div>
-							<div className="w-1/3 rounded-3xl bg-stone-200/25 px-3 py-4">
+							<div className="rounded-3xl bg-stone-200/25 px-3 py-4 lg:w-1/3">
 								<h3 className="pb-4 text-center text-2xl font-semibold ">
 									Time-Saving Automation
 								</h3>
-								<p className="text-center text-lg font-medium text-gray-700">
+								<p className="text-center text-lg font-medium text-gray-950">
 									Say goodbye to administrative burdens with our AI-driven
 									automation features, freeing up valuable time for you to focus
 									on what truly matters: engaging your students and nurturing

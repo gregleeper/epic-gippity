@@ -168,8 +168,8 @@ export default function MyUnitPlans() {
 													key={location.pathname}
 													className={cn(
 														selectedUnitPlanId === plans.at(0)?.id
-															? 'bg-slate-300/80 dark:bg-slate-700/90'
-															: 'bg-white dark:bg-slate-900',
+															? 'bg-accent'
+															: 'bg-background',
 													)}
 												>
 													<CardHeader>
@@ -201,8 +201,8 @@ export default function MyUnitPlans() {
 															key={location.pathname}
 															className={cn(
 																selectedUnitPlanId === plan.id
-																	? 'bg-slate-300/80 dark:bg-slate-700/90'
-																	: 'bg-white dark:bg-slate-900',
+																	? 'bg-accent'
+																	: 'bg-background',
 															)}
 														>
 															<CardHeader>

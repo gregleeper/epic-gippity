@@ -1,38 +1,44 @@
-import { conform, useForm } from '@conform-to/react'
-import { getFieldsetConstraint, parse } from '@conform-to/zod'
+import { getFormProps, getInputProps, useForm } from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
+import { type SEOHandle } from '@nasa-gcn/remix-seo'
 import * as E from '@react-email/components'
 import {
 	json,
 	redirect,
-	type DataFunctionArgs,
+	type ActionFunctionArgs,
 	type MetaFunction,
 } from '@remix-run/node'
-import { Form, useActionData } from '@remix-run/react'
-import { AuthenticityTokenInput } from 'remix-utils/csrf/react'
+import { Form, useActionData, useSearchParams } from '@remix-run/react'
 import { HoneypotInputs } from 'remix-utils/honeypot/react'
 import { z } from 'zod'
 import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 import { ErrorList, Field } from '#app/components/forms.tsx'
 import { StatusButton } from '#app/components/ui/status-button.tsx'
-import { validateCSRF } from '#app/utils/csrf.server.ts'
+import {
+	ProviderConnectionForm,
+	providerNames,
+} from '#app/utils/connections.tsx'
 import { prisma } from '#app/utils/db.server.ts'
 import { sendEmail } from '#app/utils/email.server.ts'
 import { checkHoneypot } from '#app/utils/honeypot.server.ts'
 import { useIsPending } from '#app/utils/misc.tsx'
 import { EmailSchema } from '#app/utils/user-validation.ts'
-import { prepareVerification } from './verify.tsx'
+import { prepareVerification } from './verify.server.ts'
+
+export const handle: SEOHandle = {
+	getSitemapEntries: () => null,
+}
 
 const SignupSchema = z.object({
 	email: EmailSchema,
 })
 
-export async function action({ request }: DataFunctionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
 
-	await validateCSRF(formData, request.headers)
 	checkHoneypot(formData)
 
-	const submission = await parse(formData, {
+	const submission = await parseWithZod(formData, {
 		schema: SignupSchema.superRefine(async (data, ctx) => {
 			const existingUser = await prisma.user.findUnique({
 				where: { email: data.email },
@@ -49,11 +55,11 @@ export async function action({ request }: DataFunctionArgs) {
 		}),
 		async: true,
 	})
-	if (submission.intent !== 'submit') {
-		return json({ status: 'idle', submission } as const)
-	}
-	if (!submission.value) {
-		return json({ status: 'error', submission } as const, { status: 400 })
+	if (submission.status !== 'success') {
+		return json(
+			{ result: submission.reply() },
+			{ status: submission.status === 'error' ? 400 : 200 },
+		)
 	}
 	const { email } = submission.value
 	const { verifyUrl, redirectTo, otp } = await prepareVerification({
@@ -65,15 +71,21 @@ export async function action({ request }: DataFunctionArgs) {
 
 	const response = await sendEmail({
 		to: email,
-		subject: `Welcome to Epic Notes!`,
+		subject: `Welcome to Prosper Education!`,
 		react: <SignupEmail onboardingUrl={verifyUrl.toString()} otp={otp} />,
 	})
 
 	if (response.status === 'success') {
 		return redirect(redirectTo.toString())
 	} else {
-		submission.error[''] = [response.error.message]
-		return json({ status: 'error', submission } as const, { status: 500 })
+		return json(
+			{
+				result: submission.reply({ formErrors: [response.error.message] }),
+			},
+			{
+				status: 500,
+			},
+		)
 	}
 }
 
@@ -88,7 +100,7 @@ export function SignupEmail({
 		<E.Html lang="en" dir="ltr">
 			<E.Container>
 				<h1>
-					<E.Text>Welcome to Epic Notes!</E.Text>
+					<E.Text>Welcome to Prosper Education!</E.Text>
 				</h1>
 				<p>
 					<E.Text>
@@ -111,13 +123,15 @@ export const meta: MetaFunction = () => {
 export default function SignupRoute() {
 	const actionData = useActionData<typeof action>()
 	const isPending = useIsPending()
+	const [searchParams] = useSearchParams()
+	const redirectTo = searchParams.get('redirectTo')
 
 	const [form, fields] = useForm({
 		id: 'signup-form',
-		constraint: getFieldsetConstraint(SignupSchema),
-		lastSubmission: actionData?.submission,
+		constraint: getZodConstraint(SignupSchema),
+		lastResult: actionData?.result,
 		onValidate({ formData }) {
-			const result = parse(formData, { schema: SignupSchema })
+			const result = parseWithZod(formData, { schema: SignupSchema })
 			return result
 		},
 		shouldRevalidate: 'onBlur',
@@ -127,32 +141,46 @@ export default function SignupRoute() {
 		<div className="container flex flex-col justify-center pb-32 pt-20">
 			<div className="text-center">
 				<h1 className="text-h1">Let's start your journey!</h1>
-				<p className="mt-3 text-body-md text-muted-foreground">
+				<p className="text-body-md mt-3 text-muted-foreground">
 					Please enter your email.
 				</p>
 			</div>
-			<div className="mx-auto mt-16 min-w-[368px] max-w-sm">
-				<Form method="POST" {...form.props}>
-					<AuthenticityTokenInput />
+			<div className="mx-auto mt-16 min-w-full max-w-sm sm:min-w-[368px]">
+				<Form method="POST" {...getFormProps(form)}>
 					<HoneypotInputs />
 					<Field
 						labelProps={{
 							htmlFor: fields.email.id,
 							children: 'Email',
 						}}
-						inputProps={{ ...conform.input(fields.email), autoFocus: true }}
+						inputProps={{
+							...getInputProps(fields.email, { type: 'email' }),
+							autoFocus: true,
+							autoComplete: 'email',
+						}}
 						errors={fields.email.errors}
 					/>
 					<ErrorList errors={form.errors} id={form.errorId} />
 					<StatusButton
 						className="w-full"
-						status={isPending ? 'pending' : actionData?.status ?? 'idle'}
+						status={isPending ? 'pending' : form.status ?? 'idle'}
 						type="submit"
 						disabled={isPending}
 					>
 						Submit
 					</StatusButton>
 				</Form>
+				<ul className="mt-5 flex flex-col gap-5 border-b-2 border-t-2 border-border py-3">
+					{providerNames.map(providerName => (
+						<li key={providerName}>
+							<ProviderConnectionForm
+								type="Signup"
+								providerName={providerName}
+								redirectTo={redirectTo}
+							/>
+						</li>
+					))}
+				</ul>
 			</div>
 		</div>
 	)

@@ -1,14 +1,18 @@
-import { useForm } from '@conform-to/react'
-import { parse } from '@conform-to/zod'
+import { getFormProps, useForm } from '@conform-to/react'
+import { parseWithZod } from '@conform-to/zod'
+import { invariantResponse } from '@epic-web/invariant'
 import { cssBundleHref } from '@remix-run/css-bundle'
 import {
+	type ActionFunctionArgs,
 	json,
+	redirect,
 	type DataFunctionArgs,
 	type HeadersFunction,
 	type LinksFunction,
 	type MetaFunction,
 } from '@remix-run/node'
 import {
+	Form,
 	Link,
 	Links,
 	LiveReload,
@@ -24,10 +28,9 @@ import { withSentry } from '@sentry/remix'
 import { forwardRef } from 'react'
 import { AuthenticityTokenProvider } from 'remix-utils/csrf/react'
 import { HoneypotProvider } from 'remix-utils/honeypot/react'
+import { ServerOnly } from 'remix-utils/server-only'
 import { z } from 'zod'
 import { Confetti } from './components/confetti.tsx'
-import { GeneralErrorBoundary } from './components/error-boundary.tsx'
-import { ErrorList } from './components/forms.tsx'
 import { EpicProgress } from './components/progress-bar.tsx'
 import { EpicToaster } from './components/toaster.tsx'
 import { Icon, href as iconsHref } from './components/ui/icon.tsx'
@@ -54,6 +57,13 @@ import { useRequestInfo } from './utils/request-info.ts'
 import { type Theme, setTheme, getTheme } from './utils/theme.server.ts'
 import { makeTimings, time } from './utils/timing.server.ts'
 import { getToast } from './utils/toast.server.ts'
+import { Button } from './components/ui/button.tsx'
+import {
+	Popover,
+	PopoverTrigger,
+	PopoverContent,
+} from './components/ui/popover.tsx'
+import { useOptionalUser } from './utils/user.ts'
 
 export const links: LinksFunction = () => {
 	return [
@@ -119,6 +129,8 @@ export async function loader({ request }: DataFunctionArgs) {
 									},
 								},
 							},
+							subscriptionStatus: true,
+							subscriptionId: true,
 						},
 						where: { id: userId },
 					}),
@@ -173,25 +185,28 @@ export const headers: HeadersFunction = ({ loaderHeaders }) => {
 
 const ThemeFormSchema = z.object({
 	theme: z.enum(['system', 'light', 'dark']),
+	// this is useful for progressive enhancement
+	redirectTo: z.string().optional(),
 })
 
-export async function action({ request }: DataFunctionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
 	const formData = await request.formData()
-	const submission = parse(formData, {
+	const submission = parseWithZod(formData, {
 		schema: ThemeFormSchema,
 	})
-	if (submission.intent !== 'submit') {
-		return json({ status: 'idle', submission } as const)
-	}
-	if (!submission.value) {
-		return json({ status: 'error', submission } as const, { status: 400 })
-	}
-	const { theme } = submission.value
+
+	invariantResponse(submission.status === 'success', 'Invalid theme received')
+
+	const { theme, redirectTo } = submission.value
 
 	const responseInit = {
 		headers: { 'set-cookie': setTheme(theme) },
 	}
-	return json({ success: true, submission }, responseInit)
+	if (redirectTo) {
+		return redirect(redirectTo, responseInit)
+	} else {
+		return json({ result: submission.reply() }, responseInit)
+	}
 }
 
 function Document({
@@ -232,9 +247,9 @@ function Document({
 
 const navComponents: { title: string; href: string; description: string }[] = [
 	{
-		title: 'Feedback',
-		href: '/app/feedback',
-		description: 'Generate feedback for student work',
+		title: 'Assignments',
+		href: '/app/assignment',
+		description: 'Create assignments and submit student work',
 	},
 	{
 		title: 'Lesson Plans',
@@ -283,7 +298,7 @@ const profileComponents: {
 function App() {
 	const data = useLoaderData<typeof loader>()
 	const nonce = useNonce()
-	// const user = useOptionalUser()
+	const user = useOptionalUser()
 	const theme = useTheme()
 	console.log('theme', theme)
 
@@ -338,6 +353,32 @@ function App() {
 							</NavigationMenuList>
 						</NavigationMenu>
 					</div>
+					{user ? (
+						<div
+							className="ml-auto mr-12 transition-opacity duration-300 ease-in-out"
+							style={{ opacity: user ? 1 : 0 }}
+						>
+							<Popover>
+								<PopoverTrigger asChild>
+									<Button variant="outline">Account</Button>
+								</PopoverTrigger>
+								<PopoverContent className="w-[200px]">
+									<ul className="grid gap-3 p-4">
+										<li>
+											<Form method="POST" action="/logout">
+												<Button
+													type="submit"
+													className="w-full rounded bg-red-500 px-4 py-2 font-bold text-white hover:bg-red-700"
+												>
+													Logout
+												</Button>
+											</Form>
+										</li>
+									</ul>
+								</PopoverContent>
+							</Popover>
+						</div>
+					) : null}
 				</div>
 
 				<div className="flex-grow">
@@ -478,22 +519,32 @@ export function useTheme() {
  */
 export function useOptimisticThemeMode() {
 	const fetchers = useFetchers()
-	const themeFetcher = fetchers.find(f => f.formAction === '/')
+	const themeFetcher = fetchers.find(
+		f => f.formAction === '/resources/theme-switch',
+	)
 
 	if (themeFetcher && themeFetcher.formData) {
-		const submission = parse(themeFetcher.formData, {
+		const submission = parseWithZod(themeFetcher.formData, {
 			schema: ThemeFormSchema,
 		})
-		return submission.value?.theme
+
+		if (submission.status === 'success') {
+			return submission.value.theme
+		}
 	}
 }
 
-function ThemeSwitch({ userPreference }: { userPreference?: Theme | null }) {
+export function ThemeSwitch({
+	userPreference,
+}: {
+	userPreference?: Theme | null
+}) {
 	const fetcher = useFetcher<typeof action>()
+	const requestInfo = useRequestInfo()
 
 	const [form] = useForm({
 		id: 'theme-switch',
-		lastSubmission: fetcher.data?.submission,
+		lastResult: fetcher.data?.result,
 	})
 
 	const optimisticMode = useOptimisticThemeMode()
@@ -519,7 +570,16 @@ function ThemeSwitch({ userPreference }: { userPreference?: Theme | null }) {
 	}
 
 	return (
-		<fetcher.Form method="POST" {...form.props}>
+		<fetcher.Form
+			method="POST"
+			{...getFormProps(form)}
+			action="/resources/theme-switch"
+		>
+			<ServerOnly>
+				{() => (
+					<input type="hidden" name="redirectTo" value={requestInfo.path} />
+				)}
+			</ServerOnly>
 			<input type="hidden" name="theme" value={nextMode} />
 			<div className="flex gap-2">
 				<button
@@ -529,27 +589,7 @@ function ThemeSwitch({ userPreference }: { userPreference?: Theme | null }) {
 					{modeLabel[mode]}
 				</button>
 			</div>
-			<ErrorList errors={form.errors} id={form.errorId} />
 		</fetcher.Form>
-	)
-}
-
-export function ErrorBoundary() {
-	// the nonce doesn't rely on the loader so we can access that
-	const nonce = useNonce()
-
-	// NOTE: you cannot use useLoaderData in an ErrorBoundary because the loader
-	// likely failed to run so we have to do the best we can.
-	// We could probably do better than this (it's possible the loader did run).
-	// This would require a change in Remix.
-
-	// Just make sure your root route never errors out and you'll always be able
-	// to give the user a better UX.
-
-	return (
-		<Document nonce={nonce}>
-			<GeneralErrorBoundary />
-		</Document>
 	)
 }
 

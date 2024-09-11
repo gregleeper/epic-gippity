@@ -1,4 +1,4 @@
-import { parse } from '@conform-to/zod'
+import { parseWithZod } from '@conform-to/zod'
 import {
 	type LoaderFunctionArgs,
 	json,
@@ -62,21 +62,19 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 /**
  * API call executed server side
  */
-export async function action({
-	request,
-}: ActionFunctionArgs): Promise<ReturnedDataProps> {
+export async function action({ request }: ActionFunctionArgs) {
 	const userId = await requireUserId(request)
 	const body = await request.formData()
 	console.log(body)
 
 	const chatHistory = JSON.parse(body.get('chat-history') as string) || []
-	const submission = await parse(body, {
+	const submission = await parseWithZod(body, {
 		schema: supportingTextSchema,
 		async: false,
 	})
 
-	if (!submission.value) {
-		throw new Error('Somthing went wrong!')
+	if (submission.status !== 'success') {
+		return json({ result: submission.reply() }, { status: 400 })
 	}
 
 	const lessonPlan = await prisma.lessonPlan.findUnique({

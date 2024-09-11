@@ -1,22 +1,23 @@
-import { conform, useForm } from '@conform-to/react'
-import { getFieldsetConstraint, parse } from '@conform-to/zod'
-import { type UnitPlan } from '@prisma/client'
+import {
+	getFormProps,
+	getInputProps,
+	getTextareaProps,
+	type SubmissionResult,
+	useForm,
+} from '@conform-to/react'
+import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import {
 	type ActionFunctionArgs,
 	json,
 	type LoaderFunctionArgs,
 } from '@remix-run/node'
-import { Form, useSubmit } from '@remix-run/react'
-import { ClipboardCopyIcon } from 'lucide-react'
+import { Form } from '@remix-run/react'
 import OpenAI from 'openai'
-import { useEffect, useRef, useState } from 'react'
-import Markdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import { typedjson, useTypedActionData } from 'remix-typedjson'
+import { useEffect, useState } from 'react'
+import { redirect, typedjson, useTypedActionData } from 'remix-typedjson'
 import { z } from 'zod'
 import { Field, TextareaField } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
-import { type ChatHistoryProps } from '#app/routes/resources+/feedback-assistant.ts'
 import { prisma } from '#app/utils/db.server.ts'
 import { invariantResponse } from '#app/utils/misc.tsx'
 import { requireUserWithPermission } from '#app/utils/permissions.ts'
@@ -31,12 +32,6 @@ const unitPlanSchema = z.object({
 	summarizedUnitPlan: z.string().min(3).max(2500).optional(),
 	id: z.string().optional(),
 })
-
-type ActionData = {
-	generatedUP: UnitPlan | null
-	error: string | null
-	chatHistory: ChatHistoryProps[]
-}
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const userId = await requireUserWithPermission(request, 'create:chat')
@@ -65,35 +60,29 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export async function action({ request }: ActionFunctionArgs) {
 	const userId = await requireUserWithPermission(request, 'create:chat')
 
-	const chatHistory = [] as ChatHistoryProps[]
-
 	const formData = await request.formData()
-	const submission = await parse(formData, {
+	const submission = await parseWithZod(formData, {
 		schema: unitPlanSchema,
 		async: false,
 	})
 
-	if (submission.intent !== 'submit') {
-		return json({ status: 'idle', submission } as const)
+	if (submission.status !== 'success') {
+		return json({ result: submission.reply() }, { status: 400 })
 	}
-	if (!submission.value) {
-		return json({ status: 'error', submission } as const, { status: 400 })
-	}
+
 	let unitPlanId = null
-	// create the rubric in the database
-	if (submission.value.intent === 'submit') {
-		const unitPlan = await prisma.unitPlan.create({
-			data: {
-				topics: submission.value.topics,
-				gradeLevel: submission.value.gradeLevel,
-				standards: submission.value.standards,
-				additionalContext: submission.value.additionalContext,
-				userId: userId,
-				lengthOfUnit: submission.value.lengthOfUnit,
-			},
-		})
-		unitPlanId = unitPlan.id
-	}
+	// create the unit plan in the database
+	const unitPlan = await prisma.unitPlan.create({
+		data: {
+			topics: submission.value.topics,
+			gradeLevel: submission.value.gradeLevel,
+			standards: submission.value.standards,
+			additionalContext: submission.value.additionalContext,
+			userId: userId,
+			lengthOfUnit: submission.value.lengthOfUnit,
+		},
+	})
+	unitPlanId = unitPlan.id
 
 	const unitPlanSystemContext = `You are a ${submission.value?.gradeLevel} teacher. You will be creating a unit plan for to cover a specified period of time and the specified topics. If a standards are provided, you should ensure that the unit plan is aligned to those standards. You will reply with your anser in Markdown format.`
 
@@ -155,7 +144,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
 		const answer = chat.choices[0].message.content
 
-		const generatedUP = await prisma.unitPlan.update({
+		await prisma.unitPlan.update({
 			where: {
 				id: unitPlanId,
 			},
@@ -164,43 +153,46 @@ export async function action({ request }: ActionFunctionArgs) {
 			},
 		})
 
-		return typedjson({
-			generatedUP,
-			error: null,
-			chatHistory,
-		})
+		return redirect(`/app/unit-plan/mine/${unitPlanId}`)
 	} catch (error: any) {
 		return typedjson({
 			generatedUP: null,
 			error: error.message || 'Something went wrong! Please try again.',
-			chatHistory,
+			chatHistory: [],
 		})
 	}
 }
 
-export default function CeateLessonPlan() {
-	// const loaderData = useLoaderData<typeof loader>()
-	const actionData: ActionData | null = useTypedActionData()
+export default function CreateUnitPlan() {
+	const actionData = useTypedActionData<typeof action>()
 
-	const [copied, setCopied] = useState(false)
-	const submit = useSubmit()
-
-	const unitPlanResponseRef = useRef<HTMLDivElement>(null)
+	function isSubmissionResult(
+		data: unknown,
+	): data is { result: SubmissionResult } {
+		return (
+			data != null &&
+			typeof data === 'object' &&
+			'result' in data &&
+			data.result != null
+		)
+	}
 
 	const [form, fields] = useForm({
-		id: 'lessonPlanForm',
-		constraint: getFieldsetConstraint(unitPlanSchema),
+		id: 'unit-plan-form',
+		constraint: getZodConstraint(unitPlanSchema),
+		lastResult: isSubmissionResult(actionData) ? actionData.result : null,
 		onValidate({ formData }) {
-			const result = parse(formData, { schema: unitPlanSchema })
-			return result
+			return parseWithZod(formData, { schema: unitPlanSchema })
 		},
 		shouldRevalidate: 'onBlur',
 	})
 
-	const handleCopy = (text: string) => {
-		navigator.clipboard.writeText(text)
-		setCopied(true)
-	}
+	const [copied, setCopied] = useState(false)
+
+	// const handleCopy = (text: string) => {
+	// 	navigator.clipboard.writeText(text)
+	// 	setCopied(true)
+	// }
 
 	useEffect(() => {
 		if (copied) {
@@ -210,38 +202,37 @@ export default function CeateLessonPlan() {
 		}
 	}, [copied])
 
-	useEffect(() => {
-		if (actionData?.generatedUP) {
-			submit(
-				{
-					text: actionData.generatedUP?.unitPlanResponse,
-					lengthOfSummary: 10,
-					modelToUpdate: 'unitPlan',
-					instanceId: actionData.generatedUP?.id,
-				},
-				{
-					method: 'post',
-					action: '/resources/summarizer',
-					fetcherKey: 'summary',
-					preventScrollReset: false,
-					replace: false,
-					navigate: false,
-				},
-			)
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [actionData?.generatedUP])
+	// useEffect(() => {
+	// 	if (actionData?.generatedUP) {
+	// 		submit(
+	// 			{
+	// 				text: actionData.generatedUP?.unitPlanResponse,
+	// 				lengthOfSummary: 10,
+	// 				modelToUpdate: 'unitPlan',
+	// 				instanceId: actionData.generatedUP?.id,
+	// 			},
+	// 			{
+	// 				method: 'post',
+	// 				action: '/resources/summarizer',
+	// 				fetcherKey: 'summary',
+	// 				preventScrollReset: false,
+	// 				replace: false,
+	// 				navigate: false,
+	// 			},
+	// 		)
+	// 	}
+	// 	// eslint-disable-next-line react-hooks/exhaustive-deps
+	// }, [actionData?.generatedUP])
 
 	return (
 		<div className="grid grid-cols-12">
 			<div className="col-span-12 grid-cols-subgrid">
-				<Form method="post" {...form.props}>
-					<div className="grid  grid-cols-12 gap-4 px-10">
+				<Form method="post" {...getFormProps(form)}>
+					<div className="grid grid-cols-12 gap-4 px-10">
 						<div className="col-span-4">
 							<Field
 								inputProps={{
-									...conform.input(fields.gradeLevel),
-									defaultValue: actionData?.generatedUP?.gradeLevel,
+									...getInputProps(fields.gradeLevel, { type: 'text' }),
 								}}
 								labelProps={{
 									htmlFor: fields.gradeLevel.id,
@@ -253,8 +244,7 @@ export default function CeateLessonPlan() {
 						<div className="col-span-3">
 							<Field
 								inputProps={{
-									...conform.input(fields.lengthOfUnit),
-									defaultValue: actionData?.generatedUP?.lengthOfUnit || '',
+									...getInputProps(fields.lengthOfUnit, { type: 'text' }),
 								}}
 								labelProps={{
 									htmlFor: fields.lengthOfUnit.id,
@@ -266,8 +256,7 @@ export default function CeateLessonPlan() {
 						<div className="col-span-12">
 							<TextareaField
 								textareaProps={{
-									...conform.input(fields.topics),
-									defaultValue: actionData?.generatedUP?.topics,
+									...getTextareaProps(fields.topics),
 								}}
 								labelProps={{
 									htmlFor: fields.topics.id,
@@ -276,13 +265,10 @@ export default function CeateLessonPlan() {
 								errors={fields.topics.errors}
 							/>
 						</div>
-
 						<div className="grid-subgrid col-span-12">
 							<TextareaField
 								textareaProps={{
-									...conform.input(fields.additionalContext),
-									defaultValue:
-										actionData?.generatedUP?.additionalContext || '',
+									...getTextareaProps(fields.additionalContext),
 								}}
 								labelProps={{
 									htmlFor: fields.additionalContext.id,
@@ -294,8 +280,7 @@ export default function CeateLessonPlan() {
 						<div className="col-span-3">
 							<Field
 								inputProps={{
-									...conform.input(fields.standards),
-									defaultValue: actionData?.generatedUP?.standards || '',
+									...getInputProps(fields.standards, { type: 'text' }),
 								}}
 								labelProps={{
 									htmlFor: fields.standards.id,
@@ -304,14 +289,13 @@ export default function CeateLessonPlan() {
 								errors={fields.standards.errors}
 							/>
 						</div>
-						<input type="hidden" name="intent" value="submit" />
 						<div className="col-start-1">
 							<Button type="submit">Submit</Button>
 						</div>
 					</div>
 				</Form>
 			</div>
-			<div className="col-span-10 col-start-2 mt-8 grid-cols-subgrid">
+			{/* <div className="col-span-10 col-start-2 mt-8 grid-cols-subgrid">
 				<div className="prose prose-lg   max-w-none  p-10">
 					{actionData?.generatedUP?.unitPlanResponse ? (
 						<div>
@@ -347,7 +331,7 @@ export default function CeateLessonPlan() {
 						</div>
 					) : null}
 				</div>
-			</div>
+			</div> */}
 		</div>
 	)
 }

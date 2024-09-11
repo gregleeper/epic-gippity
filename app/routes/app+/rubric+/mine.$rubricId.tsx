@@ -3,10 +3,10 @@ import { useLoaderData } from '@remix-run/react'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { prisma } from '#app/utils/db.server.ts'
-import { requireUserWithPermission } from '#app/utils/permissions.ts'
+import { requireUserWithValidSubscription } from '#app/utils/permissions.ts'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-	const userId = await requireUserWithPermission(request, 'create:chat')
+	const userId = await requireUserWithValidSubscription(request)
 	const rubric = await prisma.rubric.findUniqueOrThrow({
 		where: {
 			id: params.rubricId,

@@ -7,10 +7,10 @@ import {
 	CardHeader,
 	CardTitle,
 } from '#app/components/ui/card.tsx'
-import { requireUserWithPermission } from '#app/utils/permissions.ts'
+import { requireUserWithValidSubscription } from '#app/utils/permissions.ts'
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	await requireUserWithPermission(request, 'create:chat')
+	await requireUserWithValidSubscription(request)
 
 	return json({
 		message: 'ok',
@@ -51,7 +51,9 @@ export default function Rubric() {
 									<div> New DOKs</div>
 								</div>
 							</CardTitle>
-							<CardDescription>Create new Depth of Knowledge Questions</CardDescription>
+							<CardDescription>
+								Create new Depth of Knowledge Questions
+							</CardDescription>
 						</CardHeader>
 					</Card>
 				</Link>
