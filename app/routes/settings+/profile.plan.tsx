@@ -82,6 +82,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+	const userId = await requireUserId(request)
 	const formData = await request.formData()
 	const submission = PlanSchema.safeParse(Object.fromEntries(formData))
 
