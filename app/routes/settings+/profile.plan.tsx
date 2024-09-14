@@ -71,6 +71,30 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 	const subscription = await getUserSubscription(userId)
 
+	if (subscription) {
+		await prisma.user.update({
+			where: { id: userId },
+			data: {
+				// subscriptionTier: subscription.plan.product.name as string,
+				subscriptionStatus: subscription.status,
+				cancelAtPeriodEnd: subscription.cancel_at_period_end,
+				subscriptionEndDate: subscription.current_period_end
+					? new Date(subscription.current_period_end * 1000)
+					: null,
+			},
+		})
+	} else {
+		await prisma.user.update({
+			where: { id: userId },
+			data: {
+				subscriptionTier: null,
+				subscriptionStatus: null,
+				cancelAtPeriodEnd: false,
+				subscriptionEndDate: null,
+			},
+		})
+	}
+
 	const plans = await stripe.prices.list({
 		expand: ['data.product'],
 		active: true,
