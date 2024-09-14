@@ -1,3 +1,4 @@
+import { openai } from '@ai-sdk/openai'
 import {
 	getFormProps,
 	getInputProps,
@@ -12,15 +13,15 @@ import {
 	json,
 	type LoaderFunctionArgs,
 } from '@remix-run/node'
-import { Form } from '@remix-run/react'
-import { OpenAI } from 'openai'
-import { typedjson, useTypedActionData } from 'remix-typedjson'
+import { Form, Link } from '@remix-run/react'
+import { generateText } from 'ai'
+import { redirect, typedjson, useTypedActionData } from 'remix-typedjson'
 import { z } from 'zod'
 import { Field, TextareaField } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
 import { type ChatHistoryProps } from '#app/routes/resources+/feedback-assistant.ts'
 import { prisma } from '#app/utils/db.server.ts'
-import { requireUserWithPermission } from '#app/utils/permissions.ts'
+import { requireUserWithValidSubscription } from '#app/utils/permissions.ts'
 
 const lessonPlanSchema = z.object({
 	objective: z.string().min(3),
@@ -33,8 +34,7 @@ const lessonPlanSchema = z.object({
 })
 
 export async function loader({ request }: LoaderFunctionArgs) {
-	const userId = await requireUserWithPermission(request, 'create:chat')
-
+	const userId = await requireUserWithValidSubscription(request)
 	// const chatHistory = [] as ChatHistoryProps[]
 
 	// const lp = await prisma.lessonPlan.findFirst({
@@ -56,7 +56,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 	})
 }
 export async function action({ request }: ActionFunctionArgs) {
-	const userId = await requireUserWithPermission(request, 'create:chat')
+	const userId = await requireUserWithValidSubscription(request)
 
 	const chatHistory = [] as ChatHistoryProps[]
 
@@ -124,22 +124,20 @@ export async function action({ request }: ActionFunctionArgs) {
 		})
 	}
 
-	const openai = new OpenAI({
-		apiKey: process.env.OPENAI_API_KEY,
-	})
 	if (!lpId) {
 		invariantResponse(lpId, 'lpId is null')
 	}
 	try {
-		const chat = await openai.chat.completions.create({
-			model: 'gpt-3.5-turbo-1106',
-			temperature: 0.1,
-			messages: [...cleanContext, ...userMessages],
+		const chat = await generateText({
+			model: openai('gpt-4o-mini'),
+			temperature: 0.0,
+			system: cleanContext.join('\n'),
+			messages: userMessages,
 		})
 
-		const answer = chat.choices[0].message.content
-
-		const generatedLP = await prisma.lessonPlan.update({
+		const answer = chat.text
+		console.log(answer)
+		await prisma.lessonPlan.update({
 			where: {
 				id: lpId,
 			},
@@ -148,11 +146,7 @@ export async function action({ request }: ActionFunctionArgs) {
 			},
 		})
 
-		return typedjson({
-			generatedLP,
-			error: null,
-			chatHistory,
-		})
+		return redirect(`/app/lesson-plan/mine/${lpId}`)
 	} catch (error: any) {
 		return typedjson({
 			generatedLP: null,
@@ -242,6 +236,22 @@ export default function CreateLessonPlan() {
 					</div>
 				</Form>
 			</div>
+		</div>
+	)
+}
+
+export function ErrorBoundary() {
+	return (
+		<div className="flex h-full w-full flex-col items-center justify-center gap-6">
+			<div className="text-center">
+				<h1 className="text-4xl font-bold">Oops! Something went wrong.</h1>
+				<p className="text-xl">
+					We're sorry, but an error occurred while processing your request.
+				</p>
+			</div>
+			<Button asChild>
+				<Link to="/app/lesson-plan/create">Try Again</Link>
+			</Button>
 		</div>
 	)
 }

@@ -29,12 +29,43 @@ import { requireUserWithValidSubscription } from '#app/utils/permissions.ts'
 
 export async function loader({ request }: ActionFunctionArgs) {
 	const userId = await requireUserWithValidSubscription(request)
+	const { searchParams } = new URL(request.url)
+	const rubricId = searchParams.get('rubricId')
+	console.log(rubricId)
+	let chosenRubric = null
+	if (rubricId) {
+		const rubric = await prisma.rubric.findUnique({
+			where: {
+				id: rubricId,
+				OR: [{ isPublic: true }, { userId }],
+			},
+			select: {
+				rubricResponse: true,
+				title: true,
+				id: true,
+			},
+		})
+		console.log(rubric)
+		if (!rubric) {
+			const userRubrics = await prisma.rubric.findMany({
+				where: {
+					OR: [{ userId }, { isPublic: true }],
+				},
+			})
+			return {
+				userRubrics,
+				userId,
+				chosenRubric: null,
+			}
+		}
+		chosenRubric = rubric
+	}
 	const userRubrics = await prisma.rubric.findMany({
 		where: {
-			OR: [{ userId }],
+			OR: [{ userId }, { isPublic: true }],
 		},
 	})
-	return { userRubrics, userId }
+	return { userRubrics, userId, chosenRubric }
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -77,7 +108,9 @@ const assignmentSchema = z.object({
 export default function CreateAssignmentRoute() {
 	const data = useLoaderData<typeof loader>()
 	const actionData = useTypedActionData<typeof action>()
-	const [selectedRubric, setSelectedRubric] = useState<string | null>(null)
+	const [selectedRubric, setSelectedRubric] = useState<string | null>(
+		data.chosenRubric?.id ?? null,
+	)
 	function isSubmissionResult(
 		data: unknown,
 	): data is { result: SubmissionResult } {
@@ -165,6 +198,7 @@ export default function CreateAssignmentRoute() {
 									<SelectField
 										buttonProps={{
 											...getSelectProps(fields.rubricId),
+											defaultValue: selectedRubric ?? '',
 										}}
 										labelProps={{
 											htmlFor: fields.rubricId.id,

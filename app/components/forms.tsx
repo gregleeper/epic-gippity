@@ -1,6 +1,10 @@
-import { useInputControl } from '@conform-to/react'
+import {
+	unstable_useControl as useControl,
+	type FieldMetadata,
+	useInputControl,
+} from '@conform-to/react'
 import { type OTPInputProps, REGEXP_ONLY_DIGITS_AND_CHARS } from 'input-otp'
-import React, { useId, useRef } from 'react'
+import React, { type ElementRef, useId, useRef } from 'react'
 import { Checkbox, type CheckboxProps } from './ui/checkbox.tsx'
 import {
 	InputOTP,
@@ -17,6 +21,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from './ui/select.tsx'
+import { Switch } from './ui/switch.tsx'
 import { Textarea } from './ui/textarea.tsx'
 
 export type ListOfErrors = Array<string | null | undefined> | null | undefined
@@ -193,8 +198,6 @@ export function SelectField({
 		initialValue: buttonProps?.defaultValue?.toString() || undefined,
 	})
 
-	console.log(children, buttonProps)
-
 	const id = buttonProps.id ?? buttonProps.name ?? fallbackId
 	const errorId = errors?.length ? `${id}-error` : undefined
 
@@ -284,5 +287,51 @@ export function OTPField({
 				{errorId ? <ErrorList id={errorId} errors={errors} /> : null}
 			</div>
 		</div>
+	)
+}
+
+export function SwitchConform({
+	meta,
+	onCheckedChange,
+	defaultChecked,
+}: {
+	meta: FieldMetadata<boolean>
+	onCheckedChange?: (checked: boolean) => void
+	defaultChecked?: boolean
+}) {
+	const switchRef = useRef<ElementRef<typeof Switch>>(null)
+	const control = useControl(meta)
+	console.log('default checked', defaultChecked)
+
+	// Initialize the control value based on defaultChecked
+	React.useEffect(() => {
+		if (defaultChecked) {
+			control.change('on')
+		}
+	}, [defaultChecked, control])
+
+	return (
+		<>
+			<input
+				name={meta.name}
+				ref={control.register}
+				defaultValue={meta.initialValue}
+				className="sr-only"
+				tabIndex={-1}
+				onFocus={() => {
+					switchRef.current?.focus()
+				}}
+			/>
+			<Switch
+				ref={switchRef}
+				checked={control.value === 'on'}
+				onCheckedChange={checked => {
+					control.change(checked ? 'on' : '')
+					onCheckedChange?.(checked)
+				}}
+				onBlur={control.blur}
+				className="focus:ring-2 focus:ring-stone-950 focus:ring-offset-2"
+			/>
+		</>
 	)
 }

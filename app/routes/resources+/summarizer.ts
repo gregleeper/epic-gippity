@@ -1,6 +1,7 @@
+import { openai } from '@ai-sdk/openai'
 import { parseWithZod } from '@conform-to/zod'
 import { json, type ActionFunctionArgs } from '@remix-run/node'
-import OpenAI from 'openai'
+import { generateText } from 'ai'
 import { z } from 'zod'
 import { prisma } from '#app/utils/db.server.ts'
 import { requireUserWithPermission } from '#app/utils/permissions.ts'
@@ -30,9 +31,6 @@ export async function action({ request }: ActionFunctionArgs) {
 		return json({ submission } as const, { status: 400 })
 	}
 
-	const openai = new OpenAI({
-		apiKey: process.env.OPENAI_API_KEY,
-	})
 	const cleanContext = [] as {
 		role: 'system'
 		content: string
@@ -65,17 +63,13 @@ export async function action({ request }: ActionFunctionArgs) {
 	})
 
 	try {
-		const chat = await openai.chat.completions.create({
-			model: 'gpt-3.5-turbo',
-			messages: [
-				...cleanContext,
-				// @ts-ignore
-				...chatHistory,
-				...userMessages,
-			],
+		const chat = await generateText({
+			model: openai('gpt-4o-mini'),
+			system: cleanContext.join('\n'),
+			messages: userMessages,
 		})
 
-		const answer = chat.choices[0].message.content
+		const answer = chat.text
 		if (!answer) throw new Error('Something went wrong! Please try again.')
 
 		await prisma.summary.upsert({

@@ -1,3 +1,4 @@
+import { openai } from '@ai-sdk/openai'
 import { type ActionFunctionArgs, json } from '@remix-run/node'
 import {
 	Form,
@@ -7,8 +8,8 @@ import {
 	useNavigation,
 	useSubmit,
 } from '@remix-run/react'
+import { generateText } from 'ai'
 import { ClipboardCopyIcon } from 'lucide-react'
-import OpenAI from 'openai'
 import { useEffect, useState } from 'react'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -119,17 +120,11 @@ export async function action({ request }: ActionFunctionArgs) {
 		}[]
 
 		// store your key in .env
-		const openai = new OpenAI({
-			apiKey: process.env.OPENAI_API_KEY,
-		})
-
 		try {
-			const chat = await openai.chat.completions.create({
-				model: 'gpt-4o',
-				temperature: 0.1,
+			const chat = await generateText({
+				model: openai('gpt-4o-mini'),
+				system: cleanContext.join('\n'),
 				messages: [
-					...cleanContext,
-					...chatHistory,
 					{
 						role: 'user',
 						content: studentResponse,
@@ -137,7 +132,7 @@ export async function action({ request }: ActionFunctionArgs) {
 				],
 			})
 
-			const answer = chat.choices[0].message.content
+			const answer = chat.text
 
 			const updatedFeedback = await prisma.feedback.update({
 				where: {

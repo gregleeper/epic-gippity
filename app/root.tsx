@@ -33,6 +33,7 @@ import { z } from 'zod'
 import { Confetti } from './components/confetti.tsx'
 import { EpicProgress } from './components/progress-bar.tsx'
 import { EpicToaster } from './components/toaster.tsx'
+import { Button } from './components/ui/button.tsx'
 import { Icon, href as iconsHref } from './components/ui/icon.tsx'
 import {
 	NavigationMenu,
@@ -42,6 +43,11 @@ import {
 	NavigationMenuList,
 	NavigationMenuTrigger,
 } from './components/ui/navigation-menu.tsx'
+import {
+	Popover,
+	PopoverTrigger,
+	PopoverContent,
+} from './components/ui/popover.tsx'
 import fontStyleSheetUrl from './styles/font.css'
 import tailwindStyleSheetUrl from './styles/tailwind.css'
 import { getUserId, logout } from './utils/auth.server.ts'
@@ -57,12 +63,6 @@ import { useRequestInfo } from './utils/request-info.ts'
 import { type Theme, setTheme, getTheme } from './utils/theme.server.ts'
 import { makeTimings, time } from './utils/timing.server.ts'
 import { getToast } from './utils/toast.server.ts'
-import { Button } from './components/ui/button.tsx'
-import {
-	Popover,
-	PopoverTrigger,
-	PopoverContent,
-} from './components/ui/popover.tsx'
 import { useOptionalUser } from './utils/user.ts'
 
 export const links: LinksFunction = () => {
@@ -270,11 +270,6 @@ const navComponents: { title: string; href: string; description: string }[] = [
 		title: 'Rubric',
 		href: '/app/rubric',
 		description: 'Create and manage rubrics',
-	},
-	{
-		title: 'Text Modifier',
-		href: '/app/text-modifier',
-		description: 'Differentiate text for any grade level',
 	},
 ]
 

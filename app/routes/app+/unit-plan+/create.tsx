@@ -137,7 +137,7 @@ export async function action({ request }: ActionFunctionArgs) {
 	}
 	try {
 		const chat = await openai.chat.completions.create({
-			model: 'gpt-3.5-turbo-1106',
+			model: 'gpt-4o-mini',
 			temperature: 0.1,
 			messages: [...cleanContext, ...userMessages],
 		})
@@ -182,7 +182,10 @@ export default function CreateUnitPlan() {
 		constraint: getZodConstraint(unitPlanSchema),
 		lastResult: isSubmissionResult(actionData) ? actionData.result : null,
 		onValidate({ formData }) {
-			return parseWithZod(formData, { schema: unitPlanSchema })
+			const result = parseWithZod(formData, { schema: unitPlanSchema })
+			console.log('result', result)
+
+			return result
 		},
 		shouldRevalidate: 'onBlur',
 	})
@@ -289,6 +292,7 @@ export default function CreateUnitPlan() {
 								errors={fields.standards.errors}
 							/>
 						</div>
+						<input type="hidden" name="intent" value="submit" />
 						<div className="col-start-1">
 							<Button type="submit">Submit</Button>
 						</div>

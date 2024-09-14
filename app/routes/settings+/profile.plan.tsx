@@ -41,6 +41,7 @@ import {
 	resumeUserSubscription,
 } from './profile.plan.server.ts'
 import { type BreadcrumbHandle } from './profile.tsx'
+import { GeneralErrorBoundary } from '#app/components/error-boundary.tsx'
 
 export const handle: BreadcrumbHandle & SEOHandle = {
 	breadcrumb: <Icon name="credit-card">Choose Plan</Icon>,
@@ -156,7 +157,7 @@ export async function action({ request }: ActionFunctionArgs) {
 			)
 		}
 		// Existing checkout session creation logic
-		const user = await prisma.user.findUniqueOrThrow({
+		await prisma.user.findUniqueOrThrow({
 			where: { id: userId },
 			select: { email: true, stripeCustomerId: true },
 		})
@@ -370,4 +371,8 @@ export default function ChoosePlanRoute() {
 			</Form>
 		</div>
 	)
+}
+
+export function ErrorBoundary() {
+	return <GeneralErrorBoundary />
 }

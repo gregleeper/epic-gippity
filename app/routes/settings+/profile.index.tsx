@@ -19,6 +19,7 @@ import { getUserImgSrc, useDoubleCheck } from '#app/utils/misc.tsx'
 import { authSessionStorage } from '#app/utils/session.server.ts'
 import { redirectWithToast } from '#app/utils/toast.server.ts'
 import { NameSchema, UsernameSchema } from '#app/utils/user-validation.ts'
+import { getUserSubscription } from './profile.plan.server.ts'
 import { twoFAVerificationType } from './profile.two-factor.tsx'
 
 export const handle: SEOHandle = {
@@ -32,6 +33,33 @@ const ProfileFormSchema = z.object({
 
 export async function loader({ request }: LoaderFunctionArgs) {
 	const userId = await requireUserId(request)
+
+	const subscription = await getUserSubscription(userId)
+
+	if (subscription) {
+		await prisma.user.update({
+			where: { id: userId },
+			data: {
+				subscriptionStatus: subscription.status,
+				// subscriptionTier: (subscription.plan.product as Stripe.Product).name,
+				cancelAtPeriodEnd: subscription.cancel_at_period_end,
+				subscriptionEndDate: subscription.current_period_end
+					? new Date(subscription.current_period_end * 1000)
+					: null,
+			},
+		})
+	} else {
+		await prisma.user.update({
+			where: { id: userId },
+			data: {
+				subscriptionStatus: null,
+				subscriptionTier: null,
+				cancelAtPeriodEnd: false,
+				subscriptionEndDate: null,
+			},
+		})
+	}
+
 	const user = await prisma.user.findUniqueOrThrow({
 		where: { id: userId },
 		select: {
