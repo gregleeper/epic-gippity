@@ -1,5 +1,6 @@
-import Anthropic from '@anthropic-ai/sdk'
-import { type TextBlock } from '@anthropic-ai/sdk/resources/messages.mjs'
+import { anthropic } from '@ai-sdk/anthropic'
+// import Anthropic from '@anthropic-ai/sdk'
+// import { type TextBlock } from '@anthropic-ai/sdk/resources/messages.mjs'
 import { getFormProps, getTextareaProps, useForm } from '@conform-to/react'
 import { getZodConstraint, parseWithZod } from '@conform-to/zod'
 import {
@@ -9,6 +10,7 @@ import {
 	redirect,
 } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
+import { generateObject, generateText } from 'ai'
 import { z } from 'zod'
 import { TextareaField } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
@@ -28,6 +30,19 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 		assignment,
 	})
 }
+const aiStructuredFeedback = z.object({
+	paragraphs: z.array(
+		z.object({
+			id: z.string(),
+			content: z.string(),
+			type: z.enum(['introduction', 'main', 'conclusion']),
+			feedback: z.string(),
+		}),
+	),
+	overallFeedback: z.string(),
+})
+
+export type AiStructuredFeedback = z.infer<typeof aiStructuredFeedback>
 
 export async function action({ request, params }: ActionFunctionArgs) {
 	const userId = await requireUserWithValidSubscription(request)
@@ -86,35 +101,34 @@ export async function action({ request, params }: ActionFunctionArgs) {
 		},
 		{
 			role: 'user',
-			content: `Provide your response in the form of markdown. Do not give preambles or explanations. Just provide the feedback.`,
-		},
-		{
-			role: 'assistant',
-			content: `I am awaiting the student's response.`,
+			content: `Provide feedback on the student's response using the following structure:
+
+1. Overall Feedback: A brief summary of the overall performance.
+
+2. Detailed Feedback: Provide 3-5 paragraphs of detailed feedback. Each paragraph should focus on a specific aspect of the writing. Structure each paragraph as follows:
+   - Aspect: [Name of the aspect being discussed]
+   - Feedback: [Detailed feedback on this aspect]
+   - Suggestion: [A specific suggestion for improvement]
+
+3. Conclusion: A final encouraging statement and summary of key points to focus on.
+
+Present your response in markdown format, using appropriate headers and bullet points where necessary. Do not include any preamble or explanations outside of this structure.`,
 		},
 	] as { role: 'assistant' | 'user'; content: string }[]
-	const anthropic = new Anthropic({
-		apiKey: process.env.ANTHROPIC_API_KEY,
-	})
+	// const anthropic = new Anthropic({
+	// 	apiKey: process.env.ANTHROPIC_API_KEY,
+	// })
 	// const openai = new OpenAI({
 	// 	apiKey: process.env.OPENAI_API_KEY,
 	// })
 
 	try {
-		const chat = await anthropic.messages.create({
-			model: 'claude-3-5-sonnet-20240620',
-			temperature: 0.0,
-			max_tokens: 1024,
-			messages: [
-				...ctx,
-				{
-					role: 'user',
-					content: studentResponse as string,
-				},
-			],
+		const chat = await generateText({
+			model: anthropic('claude-3-5-sonnet-20240620'),
+			messages: ctx,
 		})
 
-		const answer = (chat.content[0] as TextBlock).text
+		const answer = chat.text
 
 		// const updatedFeedback = await prisma.feedback.update({
 		// 	where: {

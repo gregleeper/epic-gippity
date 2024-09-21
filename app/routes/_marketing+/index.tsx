@@ -4,7 +4,17 @@ import { useEffect, useState } from 'react'
 import { Button } from '#app/components/ui/button.tsx'
 import { useTheme } from '#app/root.tsx'
 
-export const meta: MetaFunction = () => [{ title: 'Prosper' }]
+export const meta: MetaFunction = () => [
+	{ title: 'Prosper Education - AI Powered' },
+	{
+		description:
+			'Prosper Education is an AI-powered platform designed to support educators in transforming the classroom experience. Our platform leverages AI-driven analytics, adaptive learning tools, and automation to enhance student engagement, personalize learning paths, and save valuable time for educators.',
+	},
+	{
+		keywords:
+			'Prosper Education, AI-powered platform, educator support, personalized learning, time-saving automation, student engagement, adaptive learning tools, real-time feedback, AI-driven analytics, educational technology',
+	},
+]
 
 export default function Index() {
 	const [showImage, setShowImage] = useState(false)
