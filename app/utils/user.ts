@@ -1,13 +1,14 @@
 import { type SerializeFrom } from '@remix-run/node'
 import { useRouteLoaderData } from '@remix-run/react'
-import { type loader as rootLoader } from '#app/root.tsx'
+import { type loader as appLoader } from '#app/routes/app.tsx'
 
-function isUser(user: any): user is SerializeFrom<typeof rootLoader>['user'] {
+function isUser(user: any): user is SerializeFrom<typeof appLoader>['user'] {
 	return user && typeof user === 'object' && typeof user.id === 'string'
 }
 
 export function useOptionalUser() {
-	const data = useRouteLoaderData<typeof rootLoader>('root')
+	const data = useRouteLoaderData<typeof appLoader>('routes/app')
+	console.log('data', data)
 	if (!data || !isUser(data.user)) {
 		return undefined
 	}

@@ -80,15 +80,21 @@ model Rubric {
 }
 
 model Submission {
-  id           String     @id @default(uuid())
-  assignmentId String
-  userId       String
-  user         User       @relation(fields: [userId], references: [id])
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  aiFeedback   String?
-  assignment   Assignment @relation(fields: [assignmentId], references: [id])
-  studentText  String
+  id                String     @id @default(uuid())
+  assignmentId      String
+  userId            String
+  user              User       @relation(fields: [userId], references: [id])
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  aiFeedback        String?
+  assignment        Assignment @relation(fields: [assignmentId], references: [id])
+  studentText       String
+  overallImpression String?
+  keyPoints         String?
+  positivePoints    String?
+  negativePoints    String?
+  detailedFeedback  String?
+  score             Int?
 }
 
 model SupportingText {
