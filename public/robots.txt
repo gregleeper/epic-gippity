@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.prospereducation.com/sitemap.xml
+Sitemap: https://prospereduai.com/sitemap.xml
