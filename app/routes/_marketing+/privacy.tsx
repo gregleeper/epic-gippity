@@ -1,13 +1,22 @@
+import { Container } from '#app/components/container.tsx'
+import { Footer } from '#app/components/footer.tsx'
+import { GradientBackground } from '#app/components/gradient.tsx'
+import { Navbar } from '#app/components/navbar.tsx'
 import Markdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
 export default function PrivacyRoute() {
 	return (
-		<div className="container pb-10">
-			<div className=" prose prose-lg  h-full  max-w-none overflow-y-scroll p-10 dark:prose-invert ">
-				<Markdown
-					remarkPlugins={[remarkGfm]}
-					children={` 
+		<main className="overflow-hidden">
+			<GradientBackground />
+			<Container>
+				<Navbar />
+			</Container>
+			<div className="container pb-10">
+				<div className=" prose prose-lg  h-full  max-w-none overflow-y-scroll p-10 dark:prose-invert ">
+					<Markdown
+						remarkPlugins={[remarkGfm]}
+						children={` 
 # Privacy Policy
 
 Last updated: May 11, 2024
@@ -53,8 +62,10 @@ We may update this Privacy Policy from time to time to reflect changes in our pr
 ## Contact Us
 
 If you have any questions or concerns about this Privacy Policy or our data practices, please contact us at [Insert Contact Information].`}
-				/>
+					/>
+				</div>
 			</div>
-		</div>
+			<Footer />
+		</main>
 	)
 }

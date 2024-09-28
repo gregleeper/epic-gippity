@@ -34,7 +34,11 @@ import {
 	NavigationMenuContent,
 	NavigationMenuLink,
 } from '#app/components/ui/navigation-menu.tsx'
-import { Popover,PopoverTrigger, PopoverContent } from '#app/components/ui/popover.tsx'
+import {
+	Popover,
+	PopoverTrigger,
+	PopoverContent,
+} from '#app/components/ui/popover.tsx'
 import { getUserId, logout } from '#app/utils/auth.server.ts'
 import { getHints, useHints } from '#app/utils/client-hints.tsx'
 import { getConfetti } from '#app/utils/confetti.server.ts'
@@ -188,7 +192,7 @@ const profileComponents: {
 }[] = [
 	{
 		title: 'Profile',
-		href: '/settings/profile',
+		href: '/app/app/settings/profile',
 		description: 'Manage your profile',
 	},
 	// {

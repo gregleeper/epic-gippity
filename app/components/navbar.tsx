@@ -1,5 +1,3 @@
-'use client'
-
 import {
 	Disclosure,
 	DisclosureButton,
@@ -8,14 +6,13 @@ import {
 import { Bars2Icon } from '@heroicons/react/24/solid'
 import { Link } from '@remix-run/react'
 import { motion } from 'framer-motion'
-// import { Logo } from './logo.tsx'
 import { PlusGrid, PlusGridItem, PlusGridRow } from './plus-grid.tsx'
 import { ProsperLogo } from './ProsperLogo.tsx'
 
 const links = [
 	{ href: '/about', label: 'About' },
 	{ href: '/privacy', label: 'Privacy' },
-	{ href: '/blog', label: 'Blog' },
+	// { href: '/blog', label: 'Blog' },
 	{ href: '/login', label: 'Login' },
 ]
 
@@ -84,8 +81,13 @@ export function Navbar({ banner }: { banner?: React.ReactNode }) {
 					<div className="relative flex gap-6">
 						<PlusGridItem className="py-3">
 							<Link to="/" title="Home">
-								<div className="h-12 w-auto">
-									<ProsperLogo className="h-full w-full" />
+								<div className="flex items-center gap-2">
+									<div className="h-12 w-auto">
+										<ProsperLogo className="h-full w-full" />
+									</div>
+									<div className="w-auto text-2xl font-bold">
+										<span>Prosper Education</span>
+									</div>
 								</div>
 							</Link>
 						</PlusGridItem>
