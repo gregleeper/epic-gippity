@@ -192,7 +192,7 @@ const profileComponents: {
 }[] = [
 	{
 		title: 'Profile',
-		href: '/app/app/settings/profile',
+		href: '/app/settings/profile',
 		description: 'Manage your profile',
 	},
 	// {
