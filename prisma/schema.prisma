@@ -43,6 +43,7 @@ model User {
   Assignment         Assignment[]
   AssignmentFeedback AssignmentFeedback[]
   Submission         Submission[]
+  NewsLetter         NewsLetter[]
 }
 
 model Feedback {
@@ -367,4 +368,14 @@ model AssignmentFeedback {
   updatedAt    DateTime   @updatedAt
   userId       String
   user         User       @relation(fields: [userId], references: [id])
+}
+
+model NewsLetter {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
 }

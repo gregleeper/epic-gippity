@@ -1,17 +1,16 @@
 import { type MetaFunction } from '@remix-run/node'
 import { Link } from '@remix-run/react'
 import { ChevronRightIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
 import { BentoCard } from '#app/components/bento-card.tsx'
 import { Button as ProsperButton } from '#app/components/button.tsx'
 import { Container } from '#app/components/container.tsx'
+import { Footer } from '#app/components/footer.tsx'
 import { Gradient } from '#app/components/gradient.tsx'
 import { Map } from '#app/components/map.tsx'
 import { Navbar } from '#app/components/navbar.tsx'
 import { Screenshot } from '#app/components/screenshot.tsx'
 import { Heading, Subheading } from '#app/components/text.tsx'
 import ss from '../../screenshots/proser-submission-ss.png'
-import { Footer } from '#app/components/footer.tsx'
 
 export const meta: MetaFunction = () => [
 	{ title: 'Prosper Education - AI Powered' },
@@ -21,7 +20,7 @@ export const meta: MetaFunction = () => [
 	},
 	{
 		keywords:
-			'Prosper Education, AI-powered platform, educator support, personalized learning, time-saving automation, student engagement, adaptive learning tools, real-time feedback, AI-driven analytics, educational technology',
+			'Prosper Education, AI-powered platform, educator support, personalized learning, time-saving automation, student engagement, adaptive learning tools, real-time feedback, AI-driven analytics, educational technology, teacher tools, lesson planning, unit planning, grading, feedback, student progress, classroom management, educational innovation, time saving',
 	},
 ]
 function BentoSection() {

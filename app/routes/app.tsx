@@ -59,8 +59,10 @@ export async function loader({ request }: DataFunctionArgs) {
 		type: 'getUserId',
 		desc: 'getUserId in root',
 	})
-
-	const user = userId
+	if (!userId) {
+		return redirect('/login')
+	}
+	let user = userId
 		? await time(
 				() =>
 					prisma.user.findUniqueOrThrow({
@@ -95,6 +97,10 @@ export async function loader({ request }: DataFunctionArgs) {
 	const { confettiId, headers: confettiHeaders } = getConfetti(request)
 	const honeyProps = honeypot.getInputProps()
 	const [csrfToken, csrfCookieHeader] = await csrf.commitToken()
+
+	if (user?.subscriptionStatus !== 'active') {
+		return redirect('/app/settings/subscription')
+	}
 
 	return json(
 		{
@@ -182,6 +188,11 @@ const navComponents: { title: string; href: string; description: string }[] = [
 		title: 'Rubric',
 		href: '/app/rubric',
 		description: 'Create and manage rubrics',
+	},
+	{
+		title: 'Newsletter',
+		href: '/app/newsletter',
+		description: 'Create and manage newsletters',
 	},
 ]
 
