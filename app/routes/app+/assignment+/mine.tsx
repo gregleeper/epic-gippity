@@ -237,7 +237,7 @@ export function ErrorBoundary() {
 						<div className="text-lg font-bold">
 							<p>You must have a valid subscription to view your assignments</p>
 						</div>
-						<Link to="/settings/profile/plan">
+						<Link to="/app/settings/profile/plan">
 							<Button>Upgrade</Button>
 						</Link>
 					</div>

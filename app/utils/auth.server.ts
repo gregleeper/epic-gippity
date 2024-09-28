@@ -66,7 +66,7 @@ export async function requireUserId(
 export async function requireAnonymous(request: Request) {
 	const userId = await getUserId(request)
 	if (userId) {
-		throw redirect('/')
+		throw redirect('/app')
 	}
 }
 

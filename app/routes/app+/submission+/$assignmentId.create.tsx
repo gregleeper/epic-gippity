@@ -10,7 +10,7 @@ import {
 	redirect,
 } from '@remix-run/node'
 import { Form, useActionData, useLoaderData } from '@remix-run/react'
-import { generateObject, generateText } from 'ai'
+import { generateObject } from 'ai'
 import { z } from 'zod'
 import { TextareaField } from '#app/components/forms.tsx'
 import { Button } from '#app/components/ui/button.tsx'
@@ -106,7 +106,7 @@ export async function action({ request, params }: ActionFunctionArgs) {
 1. Overall Feedback: A brief summary of the overall performance.
 
 2. Detailed Feedback: Provide 3-5 paragraphs of detailed feedback. Each paragraph should focus on a specific aspect of the writing. Structure each paragraph as follows:
-   - Aspect: [Name of the aspect being discussed]
+   - Aspect: [Name of the aspect being discussed, be sure to include account for the score of this aspect in respect to the overall score of the assignment]
    - Feedback: [Detailed feedback on this aspect]
    - Suggestion: [A specific suggestion for improvement]
 
@@ -123,30 +123,41 @@ Present your response in markdown format, using appropriate headers and bullet p
 	// })
 
 	try {
-		const chat = await generateText({
+		// Generate structured feedback
+		const structuredChat = await generateObject({
 			model: anthropic('claude-3-5-sonnet-20240620'),
-			messages: ctx,
+			messages: [
+				...ctx,
+				{
+					role: 'user',
+					content: `Provide structured feedback on the student's response. Include a score as an integer based on the rubrics score, an overall impression, and key points (4 positive and 4 negative). Format your response as a JSON object. The student's submission is: ${studentResponse}`,
+				},
+			],
+			schema: z.object({
+				score: z.number().min(0),
+				overallImpression: z.string().min(10).max(500),
+				keyPoints: z.object({
+					positive: z.array(z.string()).length(4),
+					negative: z.array(z.string()).length(4),
+				}),
+				detailedFeedback: z.string().min(10).max(20000),
+			}),
 		})
 
-		const answer = chat.text
-
-		// const updatedFeedback = await prisma.feedback.update({
-		// 	where: {
-		// 		id: feedback.id,
-		// 	},
-		// 	data: {
-		// 		feedbackResponse: answer ? answer : '',
-		// 	},
-		// })
-		if (!answer) {
+		if (!structuredChat.object) {
 			throw new Error('No feedback provided')
 		}
+
 		const submission = await prisma.submission.create({
 			data: {
 				assignmentId: assignmentId,
 				studentText: studentResponse as string,
-				aiFeedback: answer,
 				userId: userId,
+				aiFeedback: structuredChat.object.detailedFeedback,
+				score: structuredChat.object.score,
+				overallImpression: structuredChat.object.overallImpression,
+				positivePoints: structuredChat.object.keyPoints.positive.join('\n '),
+				negativePoints: structuredChat.object.keyPoints.negative.join('\n '),
 			},
 		})
 
@@ -158,7 +169,6 @@ Present your response in markdown format, using appropriate headers and bullet p
 			{
 				result: {
 					message: studentResponse,
-					answer: '',
 					error: error.message || 'Something went wrong! Please try again.',
 					chatHistory,
 				},
